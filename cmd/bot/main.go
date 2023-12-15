@@ -32,11 +32,39 @@ func main() {
 			return
 		}
 
-		if strings.Index(update.Message.Text, "/quote") == 0 {
+		if strings.Index(update.Message.Text, "/comment") == 0 {
+			if update.Message.ReplyToMessage == nil {
+				return
+			}
+
 			_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID:           update.Message.Chat.ID,
 				Text:             randString(out),
-				ReplyToMessageID: update.Message.ID,
+				ReplyToMessageID: update.Message.ReplyToMessage.ID,
+			})
+
+			_, _ = b.DeleteMessage(ctx, &bot.DeleteMessageParams{
+				ChatID:    update.Message.Chat.ID,
+				MessageID: update.Message.ID,
+			})
+		}
+
+		if strings.Index(update.Message.Text, "/quote") == 0 {
+			replyToMessageID := update.Message.ID
+
+			ok, _ := b.DeleteMessage(ctx, &bot.DeleteMessageParams{
+				ChatID:    update.Message.Chat.ID,
+				MessageID: update.Message.ID,
+			})
+
+			if ok {
+				replyToMessageID = 0
+			}
+
+			_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:           update.Message.Chat.ID,
+				Text:             randString(out),
+				ReplyToMessageID: replyToMessageID,
 			})
 		}
 	}
