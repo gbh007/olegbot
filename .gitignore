@@ -1,3 +1,4 @@
 *.json
 _build
 *.tar
+.env
