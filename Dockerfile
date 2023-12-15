@@ -7,7 +7,6 @@ RUN mkdir /app
 
 
 COPY ./_build/bot /app/main
-COPY ./_build/data.json /app/data.json
 
 RUN chmod +x /app/main
 

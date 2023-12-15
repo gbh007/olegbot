@@ -13,6 +13,7 @@ type handler func(ctx context.Context, b *bot.Bot, update *models.Update) (bool,
 
 type useCases interface {
 	RandomQuote(context.Context) (string, error)
+	AddQuote(ctx context.Context, text string, userID, chatID int64) error
 }
 
 type Controller struct {
@@ -51,6 +52,8 @@ func New(
 		c.handlers,
 		c.commentHandle,
 		c.quoteHandle,
+		c.addQuoteHandle,
+		c.whoHandle,
 		c.selfHandle,
 	)
 
@@ -65,6 +68,30 @@ func (c *Controller) Serve(ctx context.Context) error {
 	b, err := bot.New(c.tgToken, opts...)
 	if err != nil {
 		return fmt.Errorf("serve error: %w", err)
+	}
+
+	_, err = b.SetMyCommands(ctx, &bot.SetMyCommandsParams{
+		Commands: []models.BotCommand{
+			{
+				Command:     "who",
+				Description: "кто я, и где",
+			},
+			{
+				Command:     "quote",
+				Description: "великая цитата",
+			},
+			{
+				Command:     "comment",
+				Description: "сочный комментарий",
+			},
+			{
+				Command:     "add_quote",
+				Description: "добавить цитату",
+			},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("serve error: set commands: %w", err)
 	}
 
 	b.Start(ctx)
