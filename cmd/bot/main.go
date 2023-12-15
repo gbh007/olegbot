@@ -27,12 +27,18 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	botName := os.Getenv("TG_BOT_NAME")
+	hasBotName := botName != ""
+
 	handler := func(ctx context.Context, b *bot.Bot, update *models.Update) {
 		if update.Message == nil {
+			log.Println(update)
+
 			return
 		}
 
-		if strings.Index(update.Message.Text, "/comment") == 0 {
+		switch {
+		case strings.Index(update.Message.Text, "/comment") == 0:
 			if update.Message.ReplyToMessage == nil {
 				return
 			}
@@ -47,9 +53,8 @@ func main() {
 				ChatID:    update.Message.Chat.ID,
 				MessageID: update.Message.ID,
 			})
-		}
 
-		if strings.Index(update.Message.Text, "/quote") == 0 {
+		case strings.Index(update.Message.Text, "/quote") == 0:
 			replyToMessageID := update.Message.ID
 
 			ok, _ := b.DeleteMessage(ctx, &bot.DeleteMessageParams{
@@ -66,6 +71,23 @@ func main() {
 				Text:             randString(out),
 				ReplyToMessageID: replyToMessageID,
 			})
+
+		case strings.Contains(strings.ToLower(update.Message.Text), "олег"):
+			_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:           update.Message.Chat.ID,
+				Text:             randString(out),
+				ReplyToMessageID: update.Message.ID,
+			})
+
+		case hasBotName && strings.Contains(strings.ToLower(update.Message.Text), botName):
+			_, _ = b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:           update.Message.Chat.ID,
+				Text:             randString(out),
+				ReplyToMessageID: update.Message.ID,
+			})
+
+		default:
+			log.Println(update.Message.Text)
 		}
 	}
 
