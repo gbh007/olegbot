@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"app/internal/domain"
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -72,16 +74,28 @@ func (c *Controller) addQuoteHandle(ctx context.Context, b *bot.Bot, update *mod
 	}
 
 	err := c.useCases.AddQuote(ctx, text, update.Message.From.ID, update.Message.Chat.ID)
-	if err != nil {
-		return true, fmt.Errorf("add quote handle: %w", err)
-	}
+	switch {
+	case errors.Is(err, domain.QuoteAlreadyExistsError):
+		_, sendErr := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:           update.Message.Chat.ID,
+			Text:             domain.QuoteAlreadyExistsError.Error(),
+			ReplyToMessageID: update.Message.ID,
+		})
+		if sendErr != nil {
+			return true, fmt.Errorf("add quote handle: send message: %w", sendErr)
+		}
 
-	_, err = b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-		ChatID:    update.Message.Chat.ID,
-		MessageID: update.Message.ID,
-	})
-	if err != nil {
-		return true, fmt.Errorf("add quote handle: delete message: %w", err)
+	case err != nil:
+		return true, fmt.Errorf("add quote handle: %w", err)
+
+	default:
+		_, deleteErr := b.DeleteMessage(ctx, &bot.DeleteMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			MessageID: update.Message.ID,
+		})
+		if deleteErr != nil {
+			return true, fmt.Errorf("add quote handle: delete message: %w", deleteErr)
+		}
 	}
 
 	return true, nil

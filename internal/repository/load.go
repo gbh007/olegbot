@@ -16,14 +16,23 @@ func (r *Repository) Load(ctx context.Context, source string) error {
 		return fmt.Errorf("load: %w", err)
 	}
 
-	rawQuotes, err := r.allQuotes(ctx)
+	err = r.reloadCache(ctx)
 	if err != nil {
 		return fmt.Errorf("load: %w", err)
 	}
 
+	return nil
+}
+
+func (r *Repository) reloadCache(ctx context.Context) error {
+	rawQuotes, err := r.allQuotes(ctx)
+	if err != nil {
+		return fmt.Errorf("reload cache: %w", err)
+	}
+
 	rawModerators, err := r.allModerators(ctx)
 	if err != nil {
-		return fmt.Errorf("load: %w", err)
+		return fmt.Errorf("reload cache: %w", err)
 	}
 
 	data := make([]string, len(rawQuotes))
