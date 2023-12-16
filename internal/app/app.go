@@ -13,10 +13,11 @@ import (
 type appConfig struct {
 	Token string
 	Bot   struct {
-		Name string
-		Tag  string
-	}
+		Name string `envconfig:"optional"`
+		Tag  string `envconfig:"optional"`
+	} `envconfig:"optional"`
 	Repo string
+	Addr string `envconfig:"optional"`
 }
 
 type App struct {
@@ -44,8 +45,13 @@ func (a *App) Init(ctx context.Context) error {
 	}
 
 	a.controller = controller.New(
-		cfg.Bot.Name, cfg.Bot.Tag, cfg.Token,
-		usecases.New(repo),
+		controller.Config{
+			Token:    cfg.Token,
+			BotName:  cfg.Bot.Name,
+			BotTag:   cfg.Bot.Tag,
+			HTTPAddr: cfg.Addr,
+			UseCases: usecases.New(repo),
+		},
 	)
 
 	return nil

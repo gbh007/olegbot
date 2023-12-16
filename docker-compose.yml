@@ -6,3 +6,5 @@ services:
     container_name: olegbot
     restart: no
     env_file: ./.env
+    ports:
+      - 8080:8080

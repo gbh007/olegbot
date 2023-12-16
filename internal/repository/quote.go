@@ -42,6 +42,8 @@ func (r *Repository) AddQuote(ctx context.Context, text string, userID, chatID i
 		return fmt.Errorf("repository: add quote: %w", err)
 	}
 
+	quoteCount.Inc()
+
 	r.dataMutex.Lock()
 	defer r.dataMutex.Unlock()
 

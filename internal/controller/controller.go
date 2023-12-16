@@ -3,11 +3,23 @@ package controller
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
+
+type Config struct {
+	Token string
+
+	BotName string
+	BotTag  string
+
+	HTTPAddr string
+
+	UseCases useCases
+}
 
 type handler func(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
 
@@ -24,37 +36,35 @@ type Controller struct {
 	botTag    string
 	tgToken   string
 
+	httpAddr string
+
 	useCases useCases
 
 	handlers []handler
 }
 
-func New(
-	botName string,
-	botTag string,
-	tgToken string,
-
-	useCases useCases,
-) *Controller {
+func New(cfg Config) *Controller {
 	c := &Controller{
-		hasBotName: botName != "",
-		botName:    strings.ToLower(botName),
+		hasBotName: cfg.BotName != "",
+		botName:    strings.ToLower(cfg.BotName),
 
-		hasBotTag: botTag != "",
-		botTag:    strings.ToLower(botTag),
+		hasBotTag: cfg.BotTag != "",
+		botTag:    strings.ToLower(cfg.BotTag),
 
-		tgToken: tgToken,
+		tgToken: cfg.Token,
 
-		useCases: useCases,
+		useCases: cfg.UseCases,
+
+		httpAddr: cfg.HTTPAddr,
 	}
 
 	c.handlers = append(
 		c.handlers,
-		c.commentHandle,
-		c.quoteHandle,
-		c.addQuoteHandle,
-		c.whoHandle,
-		c.selfHandle,
+		c.handleWrapper(c.commentHandle, "comment"),
+		c.handleWrapper(c.quoteHandle, "quote"),
+		c.handleWrapper(c.addQuoteHandle, "add_quote"),
+		c.handleWrapper(c.whoHandle, "who"),
+		c.handleWrapper(c.selfHandle, "self"),
 	)
 
 	return c
@@ -62,6 +72,9 @@ func New(
 
 func (c *Controller) Serve(ctx context.Context) error {
 	opts := []bot.Option{
+		bot.WithMiddlewares(
+			c.counterMiddleware(),
+		),
 		bot.WithDefaultHandler(c.handler),
 	}
 
@@ -70,28 +83,18 @@ func (c *Controller) Serve(ctx context.Context) error {
 		return fmt.Errorf("serve error: %w", err)
 	}
 
-	_, err = b.SetMyCommands(ctx, &bot.SetMyCommandsParams{
-		Commands: []models.BotCommand{
-			{
-				Command:     "who",
-				Description: "кто я, и где",
-			},
-			{
-				Command:     "quote",
-				Description: "великая цитата",
-			},
-			{
-				Command:     "comment",
-				Description: "сочный комментарий",
-			},
-			{
-				Command:     "add_quote",
-				Description: "добавить цитату",
-			},
-		},
-	})
+	err = c.setBotCommands(ctx, b)
 	if err != nil {
-		return fmt.Errorf("serve error: set commands: %w", err)
+		return fmt.Errorf("serve error: %w", err)
+	}
+
+	if c.httpAddr != "" {
+		go func() {
+			err := c.serveHTTP(ctx)
+			if err != nil {
+				log.Println(err)
+			}
+		}()
 	}
 
 	b.Start(ctx)

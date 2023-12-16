@@ -35,7 +35,7 @@ func (r *Repository) reloadCache(ctx context.Context) error {
 		return fmt.Errorf("reload cache: %w", err)
 	}
 
-	data := make([]string, len(rawQuotes))
+	data := make([]string, 0, len(rawQuotes))
 	for _, quote := range rawQuotes {
 		data = append(data, quote.Text)
 	}
@@ -44,6 +44,8 @@ func (r *Repository) reloadCache(ctx context.Context) error {
 	for _, moderator := range rawModerators {
 		moderators[moderator.UserID] = struct{}{}
 	}
+
+	quoteCount.Set(float64(len(data)))
 
 	r.dataMutex.Lock()
 	defer r.dataMutex.Unlock()
