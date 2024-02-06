@@ -64,13 +64,18 @@ func (c *Controller) addQuoteHandle(ctx context.Context, b *bot.Bot, update *mod
 		return true, fmt.Errorf("add quote invalid syntax")
 	}
 
-	var text string
+	var (
+		text    string
+		replyTo int
+	)
 
 	switch {
 	case update.Message.ReplyToMessage != nil:
 		text = update.Message.ReplyToMessage.Text
+		replyTo = update.Message.ReplyToMessage.ID
 	default:
 		text = update.Message.Text[splitIndex+1:]
+		replyTo = update.Message.ID
 	}
 
 	err := c.useCases.AddQuote(ctx, text, update.Message.From.ID, update.Message.Chat.ID)
@@ -78,8 +83,8 @@ func (c *Controller) addQuoteHandle(ctx context.Context, b *bot.Bot, update *mod
 	case errors.Is(err, domain.QuoteAlreadyExistsError):
 		_, sendErr := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:           update.Message.Chat.ID,
-			Text:             domain.QuoteAlreadyExistsError.Error(),
-			ReplyToMessageID: update.Message.ID,
+			Text:             c.texts.QuoteExists,
+			ReplyToMessageID: replyTo,
 		})
 		if sendErr != nil {
 			return true, fmt.Errorf("add quote handle: send message: %w", sendErr)
@@ -89,6 +94,17 @@ func (c *Controller) addQuoteHandle(ctx context.Context, b *bot.Bot, update *mod
 		return true, fmt.Errorf("add quote handle: %w", err)
 
 	default:
+		_, sendErr := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:           update.Message.Chat.ID,
+			Text:             c.texts.QuoteAdded,
+			ReplyToMessageID: replyTo,
+		})
+		if sendErr != nil {
+			return true, fmt.Errorf("add quote handle: send message: %w", sendErr)
+		}
+	}
+
+	if update.Message.ReplyToMessage != nil {
 		_, deleteErr := b.DeleteMessage(ctx, &bot.DeleteMessageParams{
 			ChatID:    update.Message.Chat.ID,
 			MessageID: update.Message.ID,

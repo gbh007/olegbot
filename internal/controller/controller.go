@@ -19,6 +19,13 @@ type Config struct {
 	HTTPAddr string
 
 	UseCases useCases
+
+	Texts Texts
+}
+
+type Texts struct {
+	QuoteAdded  string
+	QuoteExists string
 }
 
 type handler func(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
@@ -41,6 +48,8 @@ type Controller struct {
 	useCases useCases
 
 	handlers []handler
+
+	texts Texts
 }
 
 func New(cfg Config) *Controller {
@@ -56,6 +65,16 @@ func New(cfg Config) *Controller {
 		useCases: cfg.UseCases,
 
 		httpAddr: cfg.HTTPAddr,
+
+		texts: cfg.Texts,
+	}
+
+	if c.texts.QuoteAdded == "" {
+		c.texts.QuoteAdded = "✅ quote added"
+	}
+
+	if c.texts.QuoteExists == "" {
+		c.texts.QuoteExists = "❌ quote already exists"
 	}
 
 	c.handlers = append(

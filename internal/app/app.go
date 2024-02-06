@@ -16,8 +16,12 @@ type appConfig struct {
 		Name string `envconfig:"optional"`
 		Tag  string `envconfig:"optional"`
 	} `envconfig:"optional"`
-	Repo string
-	Addr string `envconfig:"optional"`
+	Repo  string
+	Addr  string `envconfig:"optional"`
+	Texts struct {
+		QuoteAdded  string `envconfig:"optional"`
+		QuoteExists string `envconfig:"optional"`
+	} `envconfig:"optional"`
 }
 
 type App struct {
@@ -51,6 +55,10 @@ func (a *App) Init(ctx context.Context) error {
 			BotTag:   cfg.Bot.Tag,
 			HTTPAddr: cfg.Addr,
 			UseCases: usecases.New(repo),
+			Texts: controller.Texts{
+				QuoteAdded:  cfg.Texts.QuoteAdded,
+				QuoteExists: cfg.Texts.QuoteExists,
+			},
 		},
 	)
 
