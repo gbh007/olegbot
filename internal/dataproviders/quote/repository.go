@@ -1,7 +1,7 @@
-package repository
+package quote
 
 import (
-	"app/internal/repository/migration"
+	"app/internal/dataproviders/quote/migration"
 	"context"
 	"fmt"
 	"sync"
@@ -31,7 +31,7 @@ func New() *Repository {
 	}
 }
 
-func (r *Repository) connect(ctx context.Context, source string) error {
+func (r *Repository) connect(_ context.Context, source string) error {
 	db, err := sqlx.Open("postgres", source)
 	if err != nil {
 		return fmt.Errorf("connect: %w", err)

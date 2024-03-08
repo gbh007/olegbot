@@ -1,11 +1,13 @@
 package app
 
 import (
-	"app/internal/controller"
-	"app/internal/repository"
-	"app/internal/usecases"
+	"app/internal/controllers/tgcontroller"
+	"app/internal/dataproviders/quote"
+	"app/internal/usecases/tgusecases"
 	"context"
 	"fmt"
+	"log/slog"
+	"sync"
 
 	"github.com/vrischmann/envconfig"
 )
@@ -24,12 +26,19 @@ type appConfig struct {
 	} `envconfig:"optional"`
 }
 
-type App struct {
-	controller *controller.Controller
+type controller interface {
+	Serve(ctx context.Context) error
 }
 
-func New() *App {
-	return new(App)
+type App struct {
+	controllers []controller
+	logger      *slog.Logger
+}
+
+func New(logger *slog.Logger) *App {
+	return &App{
+		logger: logger,
+	}
 }
 
 func (a *App) Init(ctx context.Context) error {
@@ -41,35 +50,46 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: envconfig: %w", err)
 	}
 
-	repo := repository.New()
+	repo := quote.New()
 
 	err = repo.Load(ctx, cfg.Repo)
 	if err != nil {
 		return fmt.Errorf("app: init: repository: %w", err)
 	}
 
-	a.controller = controller.New(
-		controller.Config{
+	a.controllers = append(a.controllers, tgcontroller.New(
+		tgcontroller.Config{
 			Token:    cfg.Token,
 			BotName:  cfg.Bot.Name,
 			BotTag:   cfg.Bot.Tag,
 			HTTPAddr: cfg.Addr,
-			UseCases: usecases.New(repo),
-			Texts: controller.Texts{
+			UseCases: tgusecases.New(repo),
+			Texts: tgcontroller.Texts{
 				QuoteAdded:  cfg.Texts.QuoteAdded,
 				QuoteExists: cfg.Texts.QuoteExists,
 			},
 		},
-	)
+	))
 
 	return nil
 }
 
 func (a *App) Serve(ctx context.Context) error {
-	err := a.controller.Serve(ctx)
-	if err != nil {
-		return fmt.Errorf("app: serve: %w", err)
+	wg := new(sync.WaitGroup)
+	wg.Add(len(a.controllers))
+
+	for _, c := range a.controllers {
+		go func(c controller) {
+			defer wg.Done()
+
+			err := c.Serve(ctx)
+			if err != nil {
+				a.logger.Error("controller serve error", slog.Any("error", err))
+			}
+		}(c)
 	}
+
+	wg.Wait()
 
 	return nil
 }

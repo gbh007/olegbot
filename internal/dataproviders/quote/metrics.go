@@ -1,4 +1,4 @@
-package repository
+package quote
 
 import (
 	"app/internal/common"

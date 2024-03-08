@@ -3,7 +3,8 @@ package main
 import (
 	"app/internal/app"
 	"context"
-	"log"
+	"log/slog"
+	"os"
 	"os/signal"
 	"syscall"
 )
@@ -16,20 +17,26 @@ func main() {
 	)
 	defer cancel()
 
-	app := app.New()
-	log.Println("app created")
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+		AddSource: true,
+	}))
+
+	app := app.New(logger)
+	logger.Info("app created")
 
 	err := app.Init(ctx)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Error(err.Error())
+		os.Exit(1)
 	}
 
-	log.Println("app init")
+	logger.Info("app init")
 
 	err = app.Serve(ctx)
 	if err != nil {
-		log.Fatalln(err)
+		logger.Error(err.Error())
+		os.Exit(1)
 	}
 
-	log.Println("app exit")
+	logger.Info("app exit")
 }
