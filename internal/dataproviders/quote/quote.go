@@ -1,6 +1,7 @@
 package quote
 
 import (
+	"app/internal/domain"
 	"context"
 	"database/sql"
 	"fmt"
@@ -15,6 +16,16 @@ type quoteModel struct {
 	CreateAt time.Time     `db:"create_at"`
 	UserID   sql.NullInt64 `db:"user_id"`
 	ChatID   sql.NullInt64 `db:"chat_id"`
+}
+
+func (v quoteModel) toDomain() domain.Quote {
+	return domain.Quote{
+		ID:              v.ID,
+		Text:            v.Text,
+		CreatorID:       v.UserID.Int64,
+		CreatedInChatID: v.ChatID.Int64,
+		CreateAt:        v.CreateAt,
+	}
 }
 
 func (r *Repository) RandomQuote(_ context.Context) (string, error) {
@@ -66,15 +77,4 @@ func (r *Repository) QuoteExists(ctx context.Context, text string) (bool, error)
 	}
 
 	return count > 0, nil
-}
-
-func (r *Repository) allQuotes(ctx context.Context) ([]*quoteModel, error) {
-	raw := make([]*quoteModel, 0)
-
-	err := r.db.SelectContext(ctx, &raw, `SELECT * FROM "quotes";`)
-	if err != nil {
-		return nil, fmt.Errorf("all quotes: %w", err)
-	}
-
-	return raw, nil
 }

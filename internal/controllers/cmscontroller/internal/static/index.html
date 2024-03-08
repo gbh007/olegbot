@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Oleg CMS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <button onclick="runDebug()">debug</button>
+    <br />
+    <pre id="debug"></pre>
+    <script>
+      async function runDebug() {
+        let debugNode = document.getElementById("debug");
+
+        try {
+          let response = await fetch("/api/quotes", { method: "GET" });
+
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+
+          let data = await response.json();
+
+          debugNode.innerText = JSON.stringify(data, null, 4);
+        } catch (err) {
+          debugNode.innerText = `${err}`;
+        }
+      }
+    </script>
+  </body>
+</html>

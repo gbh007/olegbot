@@ -1,8 +1,10 @@
 package app
 
 import (
+	"app/internal/controllers/cmscontroller"
 	"app/internal/controllers/tgcontroller"
 	"app/internal/dataproviders/quote"
+	"app/internal/usecases/cmsusecases"
 	"app/internal/usecases/tgusecases"
 	"context"
 	"fmt"
@@ -24,6 +26,11 @@ type appConfig struct {
 		QuoteAdded  string `envconfig:"optional"`
 		QuoteExists string `envconfig:"optional"`
 	} `envconfig:"optional"`
+	CMS struct {
+		Login    string `envconfig:"optional"`
+		Password string `envconfig:"optional"`
+	} `envconfig:"optional"`
+	Debug bool `envconfig:"optional"`
 }
 
 type controller interface {
@@ -57,19 +64,30 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: repository: %w", err)
 	}
 
-	a.controllers = append(a.controllers, tgcontroller.New(
-		tgcontroller.Config{
-			Token:    cfg.Token,
-			BotName:  cfg.Bot.Name,
-			BotTag:   cfg.Bot.Tag,
-			HTTPAddr: cfg.Addr,
-			UseCases: tgusecases.New(repo),
-			Texts: tgcontroller.Texts{
-				QuoteAdded:  cfg.Texts.QuoteAdded,
-				QuoteExists: cfg.Texts.QuoteExists,
+	a.controllers = append(
+		a.controllers,
+		tgcontroller.New(
+			tgcontroller.Config{
+				Token:    cfg.Token,
+				BotName:  cfg.Bot.Name,
+				BotTag:   cfg.Bot.Tag,
+				UseCases: tgusecases.New(repo),
+				Texts: tgcontroller.Texts{
+					QuoteAdded:  cfg.Texts.QuoteAdded,
+					QuoteExists: cfg.Texts.QuoteExists,
+				},
 			},
-		},
-	))
+		),
+		cmscontroller.New(
+			cmscontroller.Config{
+				HTTPAddr: cfg.Addr,
+				CMSLogin: cfg.CMS.Login,
+				CMSPass:  cfg.CMS.Password,
+				Debug:    cfg.Debug,
+			},
+			cmsusecases.New(repo),
+		),
+	)
 
 	return nil
 }

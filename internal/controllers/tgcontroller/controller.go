@@ -3,7 +3,6 @@ package tgcontroller
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/go-telegram/bot"
@@ -15,8 +14,6 @@ type Config struct {
 
 	BotName string
 	BotTag  string
-
-	HTTPAddr string
 
 	UseCases useCases
 
@@ -43,8 +40,6 @@ type Controller struct {
 	botTag    string
 	tgToken   string
 
-	httpAddr string
-
 	useCases useCases
 
 	handlers []handler
@@ -63,8 +58,6 @@ func New(cfg Config) *Controller {
 		tgToken: cfg.Token,
 
 		useCases: cfg.UseCases,
-
-		httpAddr: cfg.HTTPAddr,
 
 		texts: cfg.Texts,
 	}
@@ -105,15 +98,6 @@ func (c *Controller) Serve(ctx context.Context) error {
 	err = c.setBotCommands(ctx, b)
 	if err != nil {
 		return fmt.Errorf("serve error: %w", err)
-	}
-
-	if c.httpAddr != "" {
-		go func() {
-			err := c.serveHTTP(ctx)
-			if err != nil {
-				log.Println(err)
-			}
-		}()
 	}
 
 	b.Start(ctx)
