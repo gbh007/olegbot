@@ -4,16 +4,21 @@ import (
 	"app/internal/domain"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"math/rand"
 	"strings"
 )
 
-func (r *Repository) RandomQuote(_ context.Context) (string, error) {
-	r.dataMutex.RLock()
-	defer r.dataMutex.RUnlock()
+var errNoQuotes = errors.New("no quotes")
 
-	return r.data[rand.Intn(len(r.data))], nil
+func (r *Repository) RandomQuote(_ context.Context) (string, error) {
+	data := r.data.Load()
+	if data == nil || len(*data) == 0 {
+		return "", errNoQuotes
+	}
+
+	return (*data)[rand.Intn(len(*data))], nil
 }
 
 func (r *Repository) AddQuote(ctx context.Context, text string, userID, chatID int64) error {

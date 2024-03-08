@@ -8,10 +8,12 @@ import (
 )
 
 func (r *Repository) IsModerator(_ context.Context, userID int64) (bool, error) {
-	r.moderatorsMutex.RLock()
-	defer r.moderatorsMutex.RUnlock()
+	moderators := r.moderators.Load()
+	if moderators == nil {
+		return false, nil
+	}
 
-	_, ok := r.moderators[userID]
+	_, ok := (*moderators)[userID]
 
 	return ok, nil
 }

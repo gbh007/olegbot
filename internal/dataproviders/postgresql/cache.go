@@ -30,10 +30,7 @@ func (r *Repository) reloadModeratorCache(ctx context.Context) error {
 		moderators[moderator.UserID] = struct{}{}
 	}
 
-	r.moderatorsMutex.Lock()
-	defer r.moderatorsMutex.Unlock()
-
-	r.moderators = moderators
+	r.moderators.Store(&moderators)
 
 	return nil
 }
@@ -51,10 +48,7 @@ func (r *Repository) reloadQuoteCache(ctx context.Context) error {
 
 	quoteCount.Set(float64(len(data)))
 
-	r.dataMutex.Lock()
-	defer r.dataMutex.Unlock()
-
-	r.data = data
+	r.data.Store(&data)
 
 	return nil
 }

@@ -4,7 +4,7 @@ import (
 	"app/internal/dataproviders/postgresql/migration"
 	"context"
 	"fmt"
-	"sync"
+	"sync/atomic"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // драйвер для PostgreSQL
@@ -13,21 +13,17 @@ import (
 )
 
 type Repository struct {
-	data      []string // FIXME: переписать на атомики
-	dataMutex *sync.RWMutex
+	data atomic.Pointer[[]string]
 
-	moderators      map[int64]struct{} // FIXME: переписать на атомики
-	moderatorsMutex *sync.RWMutex
+	moderators atomic.Pointer[map[int64]struct{}]
 
 	db *sqlx.DB
 }
 
 func New() *Repository {
 	return &Repository{
-		data:            []string{},
-		dataMutex:       &sync.RWMutex{},
-		moderators:      make(map[int64]struct{}),
-		moderatorsMutex: &sync.RWMutex{},
+		data:       atomic.Pointer[[]string]{},
+		moderators: atomic.Pointer[map[int64]struct{}]{},
 	}
 }
 
