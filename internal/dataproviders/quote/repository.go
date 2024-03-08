@@ -13,10 +13,10 @@ import (
 )
 
 type Repository struct {
-	data      []string
+	data      []string // FIXME: переписать на атомики
 	dataMutex *sync.RWMutex
 
-	moderators      map[int64]struct{}
+	moderators      map[int64]struct{} // FIXME: переписать на атомики
 	moderatorsMutex *sync.RWMutex
 
 	db *sqlx.DB

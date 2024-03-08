@@ -20,7 +20,7 @@ func (r *Repository) allQuotes(ctx context.Context) ([]*quoteModel, error) {
 func (r *Repository) Quotes(ctx context.Context) ([]domain.Quote, error) {
 	rawQuotes, err := r.allQuotes(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("quotes: %w", err)
+		return nil, fmt.Errorf("repository: quotes: %w", err)
 	}
 
 	quotes := make([]domain.Quote, len(rawQuotes))

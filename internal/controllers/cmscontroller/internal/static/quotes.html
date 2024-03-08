@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Oleg CMS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      table.data {
+        width: 100%;
+      }
+      button.red {
+        color: #ff0000;
+        font-size: large;
+      }
+      pre.quote {
+        background-color: #d3d3d3;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <button onclick="refresh()">Обновить</button>
+    <button onclick="quoteAdd()">Добавить</button>
+    <br />
+    <table class="data">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Создана</th>
+          <th>Текст</th>
+          <th>Пользователь</th>
+          <th>Чат</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody id="quotes"></tbody>
+    </table>
+    <script>
+      async function refresh() {
+        let quotes = document.getElementById("quotes");
+
+        try {
+          let response = await fetch("/api/quotes", { method: "GET" });
+
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+
+          let data = await response.json();
+
+          quotes.innerHTML = (data || [])
+            .map(
+              (e) => `<tr>
+                        <td>${e.id}</td>
+                        <td>${new Date(e.create_at).toLocaleString()}</td>
+                        <td>
+                            <pre class="quote">${e.text}</pre>
+                        </td>
+                        <td>${e.creator_id || ""}</td>
+                        <td>${e.created_in_chat_id || ""}</td>
+                        <td>
+                            <button class="red" onclick="quoteDelete(${
+                              e.id
+                            })">Удалить</button>
+                            <button onclick="quoteEdit(${
+                              e.id
+                            })">Редактировать</button>
+                        </td>
+                      </tr>`
+            )
+            .join("\n");
+        } catch (err) {
+          alert(err);
+        }
+      }
+
+      async function quoteAdd() {
+        let text = prompt("Введите цитату");
+        if (!text) {
+          return;
+        }
+
+        try {
+          let response = await fetch(`/api/quote`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json; charset=UTF-8",
+            },
+            body: JSON.stringify({
+              text: text,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+
+          refresh();
+        } catch (err) {
+          alert(err);
+        }
+      }
+
+      async function quoteEdit(id) {
+        window.location.href = `quote_edit.html?id=${id}`;
+      }
+
+      async function quoteDelete(id) {
+        if (!confirm(`Удалить цитату №${id}`)) {
+          return;
+        }
+
+        let quotes = document.getElementById("quotes");
+
+        try {
+          let response = await fetch(`/api/quote?id=${id}`, {
+            method: "DELETE",
+          });
+
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+
+          refresh();
+        } catch (err) {
+          alert(err);
+        }
+      }
+
+      window.addEventListener("load", refresh);
+    </script>
+  </body>
+</html>

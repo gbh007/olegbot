@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Oleg CMS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <button onclick="refresh()">Обновить</button>
+    <br />
+    <textarea id="quote-text" rows="5" cols="50"></textarea>
+    <br />
+    <button onclick="quoteApply()">Сохранить</button>
+    <script>
+      const quoteID = parseInt(
+        new URLSearchParams(window.location.search).get("id")
+      );
+
+      async function refresh() {
+        let quoteTextNode = document.getElementById("quote-text");
+
+        try {
+          let response = await fetch(`/api/quote?id=${quoteID}`, {
+            method: "GET",
+          });
+
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+
+          let data = await response.json();
+
+          quoteTextNode.innerText = data.text;
+        } catch (err) {
+          alert(err);
+        }
+      }
+
+      async function quoteApply() {
+        let quoteTextNode = document.getElementById("quote-text");
+
+        try {
+          let response = await fetch(`/api/quote`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json; charset=UTF-8",
+            },
+            body: JSON.stringify({
+              id: quoteID,
+              text: quoteTextNode.value,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+
+          refresh();
+        } catch (err) {
+          alert(err);
+        }
+      }
+
+      window.addEventListener("load", refresh);
+    </script>
+  </body>
+</html>

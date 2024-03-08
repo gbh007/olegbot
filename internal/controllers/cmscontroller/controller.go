@@ -1,6 +1,7 @@
 package cmscontroller
 
 import (
+	"app/internal/controllers/cmscontroller/internal/binds"
 	"app/internal/controllers/cmscontroller/internal/static"
 	"app/internal/domain"
 	"context"
@@ -15,6 +16,11 @@ import (
 
 type useCases interface {
 	Quotes(ctx context.Context) ([]domain.Quote, error)
+
+	Quote(ctx context.Context, id int64) (domain.Quote, error)
+	DeleteQuote(ctx context.Context, id int64) error
+	UpdateQuoteText(ctx context.Context, id int64, text string) error
+	AddQuote(ctx context.Context, text string) error
 }
 
 type Config struct {
@@ -54,6 +60,7 @@ func (c *Controller) Serve(ctx context.Context) error {
 
 	echoRouter.HideBanner = true
 	echoRouter.Debug = c.debug
+	echoRouter.Validator = binds.Validator{}
 
 	if c.debug {
 		echoRouter.Use(middleware.Logger())
@@ -65,6 +72,11 @@ func (c *Controller) Serve(ctx context.Context) error {
 	echoRouter.StaticFS("/", static.StaticDir)
 
 	echoRouter.GET("/api/quotes", c.quotesHandler())
+
+	echoRouter.GET("/api/quote", c.quoteHandler())
+	echoRouter.DELETE("/api/quote", c.deleteQuoteHandler())
+	echoRouter.POST("/api/quote", c.updateQuoteHandler())
+	echoRouter.PUT("/api/quote", c.addQuoteHandler())
 
 	echoRouter.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
