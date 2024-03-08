@@ -21,6 +21,10 @@ type useCases interface {
 	DeleteQuote(ctx context.Context, id int64) error
 	UpdateQuoteText(ctx context.Context, id int64, text string) error
 	AddQuote(ctx context.Context, text string) error
+
+	Moderators(ctx context.Context) ([]domain.Moderator, error)
+	AddModerator(ctx context.Context, userID int64, description string) error
+	DeleteModerator(ctx context.Context, userID int64) error
 }
 
 type Config struct {
@@ -77,6 +81,10 @@ func (c *Controller) Serve(ctx context.Context) error {
 	echoRouter.DELETE("/api/quote", c.deleteQuoteHandler())
 	echoRouter.POST("/api/quote", c.updateQuoteHandler())
 	echoRouter.PUT("/api/quote", c.addQuoteHandler())
+
+	echoRouter.GET("/api/moderators", c.moderatorsHandler())
+	echoRouter.DELETE("/api/moderator", c.deleteModeratorHandler())
+	echoRouter.PUT("/api/moderator", c.addModeratorHandler())
 
 	echoRouter.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 

@@ -1,4 +1,4 @@
-package quote
+package postgresql
 
 import (
 	"context"

@@ -1,7 +1,7 @@
-package quote
+package postgresql
 
 import (
-	"app/internal/dataproviders/quote/migration"
+	"app/internal/dataproviders/postgresql/migration"
 	"context"
 	"fmt"
 	"sync"

@@ -14,6 +14,10 @@ type repository interface {
 
 	Quotes(ctx context.Context) ([]domain.Quote, error)
 	Quote(ctx context.Context, id int64) (domain.Quote, error)
+
+	Moderators(ctx context.Context) ([]domain.Moderator, error)
+	AddModerator(ctx context.Context, userID int64, description string) error
+	DeleteModerator(ctx context.Context, userID int64) error
 }
 
 type UseCases struct {

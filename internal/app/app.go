@@ -3,7 +3,7 @@ package app
 import (
 	"app/internal/controllers/cmscontroller"
 	"app/internal/controllers/tgcontroller"
-	"app/internal/dataproviders/quote"
+	"app/internal/dataproviders/postgresql"
 	"app/internal/usecases/cmsusecases"
 	"app/internal/usecases/tgusecases"
 	"context"
@@ -57,7 +57,7 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: envconfig: %w", err)
 	}
 
-	repo := quote.New()
+	repo := postgresql.New()
 
 	err = repo.Load(ctx, cfg.Repo)
 	if err != nil {
