@@ -16,9 +16,10 @@ import (
 type appConfig struct {
 	Token string
 	Bot   struct {
-		Name string   `envconfig:"optional"`
-		Tag  string   `envconfig:"optional"`
-		Tags []string `envconfig:"optional"`
+		Name         string   `envconfig:"optional"`
+		Tag          string   `envconfig:"optional"`
+		Tags         []string `envconfig:"optional"`
+		AllowedChats []int64  `envconfig:"optional"`
 	} `envconfig:"optional"`
 	Repo  string
 	Addr  string `envconfig:"optional"`
@@ -62,13 +63,16 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: repository: %w", err)
 	}
 
+	fmt.Println(cfg.Bot.AllowedChats)
+
 	a.tgController = tgcontroller.New(
 		tgcontroller.Config{
-			Token:    cfg.Token,
-			BotName:  cfg.Bot.Name,
-			BotTag:   cfg.Bot.Tag,
-			Tags:     cfg.Bot.Tags,
-			UseCases: tgusecases.New(repo),
+			Token:        cfg.Token,
+			BotName:      cfg.Bot.Name,
+			BotTag:       cfg.Bot.Tag,
+			Tags:         cfg.Bot.Tags,
+			AllowedChats: cfg.Bot.AllowedChats,
+			UseCases:     tgusecases.New(repo),
 			Texts: tgcontroller.Texts{
 				QuoteAdded:  cfg.Texts.QuoteAdded,
 				QuoteExists: cfg.Texts.QuoteExists,
