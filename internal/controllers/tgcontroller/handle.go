@@ -63,11 +63,19 @@ func (c *Controller) selfHandle(ctx context.Context, b *bot.Bot, update *models.
 	messageText := strings.ToLower(update.Message.Text)
 	captionText := strings.ToLower(update.Message.Caption)
 
-	ok := c.hasBotName && strings.Contains(messageText, c.botName) ||
-		c.hasBotTag && strings.Contains(messageText, c.botTag) ||
-		c.hasBotName && strings.Contains(captionText, c.botName) ||
-		c.hasBotTag && strings.Contains(captionText, c.botTag)
-	if !ok {
+	if len(c.tags) == 0 {
+		return false, nil
+	}
+
+	found := false
+	for _, tag := range c.tags {
+		if strings.Contains(messageText, tag) || strings.Contains(captionText, tag) {
+			found = true
+			break
+		}
+	}
+
+	if !found {
 		return false, nil
 	}
 

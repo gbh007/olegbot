@@ -14,6 +14,7 @@ type Config struct {
 
 	BotName string
 	BotTag  string
+	Tags    []string
 
 	UseCases useCases
 
@@ -33,12 +34,9 @@ type useCases interface {
 }
 
 type Controller struct {
-	hasBotName bool
-	botName    string
+	tags []string
 
-	hasBotTag bool
-	botTag    string
-	tgToken   string
+	tgToken string
 
 	useCases useCases
 
@@ -48,12 +46,24 @@ type Controller struct {
 }
 
 func New(cfg Config) *Controller {
-	c := &Controller{
-		hasBotName: cfg.BotName != "",
-		botName:    strings.ToLower(cfg.BotName),
+	tags := make([]string, 0, len(cfg.Tags)+2)
 
-		hasBotTag: cfg.BotTag != "",
-		botTag:    strings.ToLower(cfg.BotTag),
+	if cfg.BotName != "" {
+		tags = append(tags, strings.ToLower(cfg.BotName))
+	}
+
+	if cfg.BotTag != "" {
+		tags = append(tags, strings.ToLower(cfg.BotTag))
+	}
+
+	for _, tag := range cfg.Tags {
+		if tag != "" {
+			tags = append(tags, strings.ToLower(tag))
+		}
+	}
+
+	c := &Controller{
+		tags: tags,
 
 		tgToken: cfg.Token,
 

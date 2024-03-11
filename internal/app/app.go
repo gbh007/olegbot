@@ -16,8 +16,9 @@ import (
 type appConfig struct {
 	Token string
 	Bot   struct {
-		Name string `envconfig:"optional"`
-		Tag  string `envconfig:"optional"`
+		Name string   `envconfig:"optional"`
+		Tag  string   `envconfig:"optional"`
+		Tags []string `envconfig:"optional"`
 	} `envconfig:"optional"`
 	Repo  string
 	Addr  string `envconfig:"optional"`
@@ -66,6 +67,7 @@ func (a *App) Init(ctx context.Context) error {
 			Token:    cfg.Token,
 			BotName:  cfg.Bot.Name,
 			BotTag:   cfg.Bot.Tag,
+			Tags:     cfg.Bot.Tags,
 			UseCases: tgusecases.New(repo),
 			Texts: tgcontroller.Texts{
 				QuoteAdded:  cfg.Texts.QuoteAdded,
