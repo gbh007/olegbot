@@ -35,3 +35,23 @@ func (u *UseCases) AddQuote(ctx context.Context, text string) error {
 
 	return nil
 }
+
+func (u *UseCases) AddQuotes(ctx context.Context, quotes []string) error {
+	for _, text := range quotes {
+		exists, err := u.repo.QuoteExists(ctx, text)
+		if err != nil {
+			return fmt.Errorf("use case: add quotes: %w", err)
+		}
+
+		if exists {
+			continue
+		}
+
+		err = u.repo.AddQuote(ctx, text, 0, 0)
+		if err != nil {
+			return fmt.Errorf("use case: add quotes: %w", err)
+		}
+	}
+
+	return nil
+}

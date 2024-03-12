@@ -25,6 +25,8 @@ type useCases interface {
 	Moderators(ctx context.Context) ([]domain.Moderator, error)
 	AddModerator(ctx context.Context, userID int64, description string) error
 	DeleteModerator(ctx context.Context, userID int64) error
+
+	AddQuotes(ctx context.Context, quotes []string) error
 }
 
 type Config struct {
@@ -85,6 +87,8 @@ func (c *Controller) Serve(ctx context.Context) error {
 	echoRouter.GET("/api/moderators", c.moderatorsHandler())
 	echoRouter.DELETE("/api/moderator", c.deleteModeratorHandler())
 	echoRouter.PUT("/api/moderator", c.addModeratorHandler())
+
+	echoRouter.POST("/api/ff/quotes", c.ffQuoteHandler())
 
 	echoRouter.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
