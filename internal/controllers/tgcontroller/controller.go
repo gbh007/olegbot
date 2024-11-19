@@ -45,6 +45,8 @@ type Controller struct {
 	handlers []handler
 
 	texts Texts
+
+	b *bot.Bot
 }
 
 func New(cfg Config) *Controller {
@@ -117,6 +119,8 @@ func (c *Controller) Serve(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("serve error: %w", err)
 	}
+
+	c.b = b
 
 	b.Start(ctx)
 

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Oleg CMS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <form action="/api/ff/media" enctype="multipart/form-data" method="post">
+      <span> ID чата </span>
+      <input type="number" name="chat-id" />
+      <span> Название файла </span>
+      <input type="text" name="filename" />
+      <span> Тип сообщения </span>
+      <label><input type="radio" name="type" value="audio" />audio</label>
+      <label><input type="radio" name="type" value="video" />video</label>
+      <input type="file" name="file-data" />
+      <input value="Отправить" name="submit" type="submit" />
+    </form>
+  </body>
+</html>

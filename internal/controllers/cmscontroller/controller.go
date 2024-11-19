@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -29,6 +30,11 @@ type useCases interface {
 	AddQuotes(ctx context.Context, quotes []string) error
 }
 
+type botController interface {
+	SendAudio(ctx context.Context, chatID int64, filename string, data io.Reader) error
+	SendVideo(ctx context.Context, chatID int64, filename string, data io.Reader) error
+}
+
 type Config struct {
 	HTTPAddr string
 
@@ -45,10 +51,11 @@ type Controller struct {
 	cmsPass  string
 	debug    bool
 
-	useCases useCases
+	useCases      useCases
+	botController botController
 }
 
-func New(cfg Config, useCases useCases) *Controller {
+func New(cfg Config, useCases useCases, botController botController) *Controller {
 	return &Controller{
 		httpAddr: cfg.HTTPAddr,
 
@@ -57,7 +64,8 @@ func New(cfg Config, useCases useCases) *Controller {
 
 		debug: cfg.Debug,
 
-		useCases: useCases,
+		useCases:      useCases,
+		botController: botController,
 	}
 }
 
@@ -89,6 +97,7 @@ func (c *Controller) Serve(ctx context.Context) error {
 	echoRouter.PUT("/api/moderator", c.addModeratorHandler())
 
 	echoRouter.POST("/api/ff/quotes", c.ffQuoteHandler())
+	echoRouter.POST("/api/ff/media", c.ffMediaHandler())
 
 	echoRouter.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 

@@ -88,6 +88,7 @@ func (a *App) Init(ctx context.Context) error {
 			Debug:    cfg.Debug,
 		},
 		cmsusecases.New(repo),
+		a.tgController, // FIXME: это конечно дич, но пока так проще.
 	)
 
 	return nil
