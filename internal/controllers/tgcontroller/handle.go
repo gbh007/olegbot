@@ -39,9 +39,12 @@ func (c *Controller) commentHandle(ctx context.Context, b *bot.Bot, update *mode
 	}
 
 	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:           update.Message.Chat.ID,
-		Text:             quote,
-		ReplyToMessageID: update.Message.ReplyToMessage.ID,
+		ChatID: update.Message.Chat.ID,
+		Text:   quote,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ReplyToMessage.ID,
+			ChatID:    update.Message.Chat.ID,
+		},
 	})
 	if err != nil {
 		return true, fmt.Errorf("comment handle: send message: %w", err)
@@ -85,9 +88,12 @@ func (c *Controller) selfHandle(ctx context.Context, b *bot.Bot, update *models.
 	}
 
 	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:           update.Message.Chat.ID,
-		Text:             quote,
-		ReplyToMessageID: update.Message.ID,
+		ChatID: update.Message.Chat.ID,
+		Text:   quote,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+			ChatID:    update.Message.Chat.ID,
+		},
 	})
 	if err != nil {
 		return true, fmt.Errorf("self handle: send message: %w", err)

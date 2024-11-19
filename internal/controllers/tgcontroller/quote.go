@@ -38,9 +38,12 @@ func (c *Controller) quoteHandle(ctx context.Context, b *bot.Bot, update *models
 	}
 
 	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:           update.Message.Chat.ID,
-		Text:             quote,
-		ReplyToMessageID: replyToMessageID,
+		ChatID: update.Message.Chat.ID,
+		Text:   quote,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: replyToMessageID,
+			ChatID:    update.Message.Chat.ID,
+		},
 	})
 	if err != nil {
 		return true, fmt.Errorf("quote handle: send message: %w", err)
@@ -82,9 +85,12 @@ func (c *Controller) addQuoteHandle(ctx context.Context, b *bot.Bot, update *mod
 	switch {
 	case errors.Is(err, domain.QuoteAlreadyExistsError):
 		_, sendErr := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:           update.Message.Chat.ID,
-			Text:             c.texts.QuoteExists,
-			ReplyToMessageID: replyTo,
+			ChatID: update.Message.Chat.ID,
+			Text:   c.texts.QuoteExists,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: replyTo,
+				ChatID:    update.Message.Chat.ID,
+			},
 		})
 		if sendErr != nil {
 			return true, fmt.Errorf("add quote handle: send message: %w", sendErr)
@@ -95,9 +101,12 @@ func (c *Controller) addQuoteHandle(ctx context.Context, b *bot.Bot, update *mod
 
 	default:
 		_, sendErr := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:           update.Message.Chat.ID,
-			Text:             c.texts.QuoteAdded,
-			ReplyToMessageID: replyTo,
+			ChatID: update.Message.Chat.ID,
+			Text:   c.texts.QuoteAdded,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: replyTo,
+				ChatID:    update.Message.Chat.ID,
+			},
 		})
 		if sendErr != nil {
 			return true, fmt.Errorf("add quote handle: send message: %w", sendErr)

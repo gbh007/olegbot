@@ -20,9 +20,12 @@ func (c *Controller) whoHandle(ctx context.Context, b *bot.Bot, update *models.U
 	}
 
 	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:           update.Message.Chat.ID,
-		Text:             fmt.Sprintf("user id: %d chat id: %d", update.Message.From.ID, update.Message.Chat.ID),
-		ReplyToMessageID: update.Message.ID,
+		ChatID: update.Message.Chat.ID,
+		Text:   fmt.Sprintf("user id: %d chat id: %d", update.Message.From.ID, update.Message.Chat.ID),
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+			ChatID:    update.Message.Chat.ID,
+		},
 	})
 	if err != nil {
 		return true, fmt.Errorf("who handle: send message: %w", err)
