@@ -10,12 +10,24 @@
     <form action="/api/ff/media" enctype="multipart/form-data" method="post">
       <span> ID чата </span>
       <input type="number" name="chat-id" />
-      <span> Название файла </span>
-      <input type="text" name="filename" />
-      <span> Тип сообщения </span>
-      <label><input type="radio" name="type" value="audio" />audio</label>
-      <label><input type="radio" name="type" value="video" />video</label>
+      <div>
+        <span> Название файла (или текст для отправки) </span>
+        <br />
+        <textarea name="filename" rows="5" cols="50"></textarea>
+      </div>
+      <div>
+        <span> Тип сообщения </span>
+        <br />
+        <label><input type="radio" name="type" value="audio" />audio</label>
+        <br />
+        <label><input type="radio" name="type" value="video" />video</label>
+        <br />
+        <label><input type="radio" name="type" value="image" />image</label>
+        <br />
+        <label><input type="radio" name="type" value="text" />text</label>
+      </div>
       <input type="file" name="file-data" />
+      <br />
       <input value="Отправить" name="submit" type="submit" />
     </form>
   </body>

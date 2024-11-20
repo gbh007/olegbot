@@ -84,12 +84,17 @@ func (c *Controller) addQuoteHandle(ctx context.Context, b *bot.Bot, update *mod
 	err := c.useCases.AddQuote(ctx, text, update.Message.From.ID, update.Message.Chat.ID)
 	switch {
 	case errors.Is(err, domain.QuoteAlreadyExistsError):
-		_, sendErr := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   c.texts.QuoteExists,
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: replyTo,
-				ChatID:    update.Message.Chat.ID,
+		_, sendErr := b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
+			ChatID:    update.Message.Chat.ID,
+			MessageID: replyTo,
+			Reaction: []models.ReactionType{
+				{
+					Type: models.ReactionTypeTypeEmoji,
+					ReactionTypeEmoji: &models.ReactionTypeEmoji{
+						Type:  models.ReactionTypeTypeEmoji,
+						Emoji: "👎",
+					},
+				},
 			},
 		})
 		if sendErr != nil {
@@ -100,12 +105,17 @@ func (c *Controller) addQuoteHandle(ctx context.Context, b *bot.Bot, update *mod
 		return true, fmt.Errorf("add quote handle: %w", err)
 
 	default:
-		_, sendErr := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   c.texts.QuoteAdded,
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: replyTo,
-				ChatID:    update.Message.Chat.ID,
+		_, sendErr := b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
+			ChatID:    update.Message.Chat.ID,
+			MessageID: replyTo,
+			Reaction: []models.ReactionType{
+				{
+					Type: models.ReactionTypeTypeEmoji,
+					ReactionTypeEmoji: &models.ReactionTypeEmoji{
+						Type:  models.ReactionTypeTypeEmoji,
+						Emoji: "👍",
+					},
+				},
 			},
 		})
 		if sendErr != nil {

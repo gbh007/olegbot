@@ -2,6 +2,7 @@ package cmscontroller
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -40,28 +41,40 @@ func (cnt *Controller) ffQuoteHandler() echo.HandlerFunc {
 
 func (cnt *Controller) ffMediaHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		file, err := c.FormFile("file-data")
-		if err != nil {
-			return c.String(http.StatusBadRequest, err.Error())
-		}
+		var fileBody io.Reader
 
-		fileData, err := file.Open()
-		if err != nil {
-			return c.String(http.StatusBadRequest, err.Error())
-		}
+		actionType := c.FormValue("type")
 
-		defer fileData.Close()
+		if actionType != "text" {
+			file, err := c.FormFile("file-data")
+			if err != nil {
+				return c.String(http.StatusBadRequest, err.Error())
+			}
+
+			fileData, err := file.Open()
+			if err != nil {
+				return c.String(http.StatusBadRequest, err.Error())
+			}
+
+			fileBody = fileData
+
+			defer fileData.Close()
+		}
 
 		chatID, err := strconv.ParseInt(c.FormValue("chat-id"), 10, 64)
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		switch c.FormValue("type") {
+		switch actionType {
 		case "audio":
-			err = cnt.botController.SendAudio(c.Request().Context(), chatID, c.FormValue("filename"), fileData)
+			err = cnt.botController.SendAudio(c.Request().Context(), chatID, c.FormValue("filename"), fileBody)
 		case "video":
-			err = cnt.botController.SendVideo(c.Request().Context(), chatID, c.FormValue("filename"), fileData)
+			err = cnt.botController.SendVideo(c.Request().Context(), chatID, c.FormValue("filename"), fileBody)
+		case "image":
+			err = cnt.botController.SendImage(c.Request().Context(), chatID, c.FormValue("filename"), fileBody)
+		case "text":
+			err = cnt.botController.SendText(c.Request().Context(), chatID, c.FormValue("filename"))
 		default:
 			return c.String(http.StatusBadRequest, "unknown type")
 		}

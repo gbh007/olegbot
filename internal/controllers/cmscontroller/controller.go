@@ -33,6 +33,8 @@ type useCases interface {
 type botController interface {
 	SendAudio(ctx context.Context, chatID int64, filename string, data io.Reader) error
 	SendVideo(ctx context.Context, chatID int64, filename string, data io.Reader) error
+	SendImage(ctx context.Context, chatID int64, filename string, data io.Reader) error
+	SendText(ctx context.Context, chatID int64, text string) error
 }
 
 type Config struct {

@@ -21,17 +21,17 @@ type appConfig struct {
 		Tags         []string `envconfig:"optional"`
 		AllowedChats []int64  `envconfig:"optional"`
 	} `envconfig:"optional"`
-	Repo  string
-	Addr  string `envconfig:"optional"`
-	Texts struct {
-		QuoteAdded  string `envconfig:"optional"`
-		QuoteExists string `envconfig:"optional"`
-	} `envconfig:"optional"`
-	CMS struct {
+	Repo string
+	Addr string `envconfig:"optional"`
+	CMS  struct {
 		Login    string `envconfig:"optional"`
 		Password string `envconfig:"optional"`
 	} `envconfig:"optional"`
 	Debug bool `envconfig:"optional"`
+	Emoji struct {
+		List   []string `envconfig:"optional"`
+		Chance float32  `envconfig:"optional"`
+	} `envconfig:"optional"`
 }
 
 type App struct {
@@ -72,11 +72,11 @@ func (a *App) Init(ctx context.Context) error {
 			BotTag:       cfg.Bot.Tag,
 			Tags:         cfg.Bot.Tags,
 			AllowedChats: cfg.Bot.AllowedChats,
-			UseCases:     tgusecases.New(repo),
-			Texts: tgcontroller.Texts{
-				QuoteAdded:  cfg.Texts.QuoteAdded,
-				QuoteExists: cfg.Texts.QuoteExists,
-			},
+			UseCases: tgusecases.New(
+				repo,
+				cfg.Emoji.List,
+				cfg.Emoji.Chance,
+			),
 		},
 	)
 

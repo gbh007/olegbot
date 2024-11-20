@@ -37,3 +37,30 @@ func (c *Controller) SendVideo(ctx context.Context, chatID int64, filename strin
 
 	return nil
 }
+
+func (c *Controller) SendImage(ctx context.Context, chatID int64, filename string, data io.Reader) error {
+	_, err := c.b.SendPhoto(ctx, &bot.SendPhotoParams{
+		ChatID: chatID,
+		Photo: &models.InputFileUpload{
+			Filename: filename,
+			Data:     data,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Controller) SendText(ctx context.Context, chatID int64, text string) error {
+	_, err := c.b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: chatID,
+		Text:   text,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

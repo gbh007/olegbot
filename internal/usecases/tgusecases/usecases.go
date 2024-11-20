@@ -10,11 +10,19 @@ type repository interface {
 }
 
 type UseCases struct {
-	repo repository
+	repo        repository
+	emojiList   []string
+	emojiChance float32
 }
 
-func New(repo repository) *UseCases {
+func New(
+	repo repository,
+	emojiList []string,
+	emojiChance float32,
+) *UseCases {
 	return &UseCases{
-		repo: repo,
+		repo:        repo,
+		emojiList:   emojiList,
+		emojiChance: emojiChance,
 	}
 }

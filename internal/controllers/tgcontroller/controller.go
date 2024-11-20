@@ -18,13 +18,6 @@ type Config struct {
 	AllowedChats []int64
 
 	UseCases useCases
-
-	Texts Texts
-}
-
-type Texts struct {
-	QuoteAdded  string
-	QuoteExists string
 }
 
 type handler func(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
@@ -32,6 +25,7 @@ type handler func(ctx context.Context, b *bot.Bot, update *models.Update) (bool,
 type useCases interface {
 	RandomQuote(context.Context) (string, error)
 	AddQuote(ctx context.Context, text string, userID, chatID int64) error
+	RandomEmoji(ctx context.Context) (string, bool, error)
 }
 
 type Controller struct {
@@ -43,8 +37,6 @@ type Controller struct {
 	useCases useCases
 
 	handlers []handler
-
-	texts Texts
 
 	b *bot.Bot
 }
@@ -73,16 +65,6 @@ func New(cfg Config) *Controller {
 		tgToken: cfg.Token,
 
 		useCases: cfg.UseCases,
-
-		texts: cfg.Texts,
-	}
-
-	if c.texts.QuoteAdded == "" {
-		c.texts.QuoteAdded = "✅ quote added"
-	}
-
-	if c.texts.QuoteExists == "" {
-		c.texts.QuoteExists = "❌ quote already exists"
 	}
 
 	c.handlers = append(
@@ -92,6 +74,7 @@ func New(cfg Config) *Controller {
 		c.handleWrapper(c.addQuoteHandle, "add_quote"),
 		c.handleWrapper(c.whoHandle, "who"),
 		c.handleWrapper(c.selfHandle, "self"),
+		c.handleWrapper(c.emojiHandle, "emoji"),
 	)
 
 	return c
