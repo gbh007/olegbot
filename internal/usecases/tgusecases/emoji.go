@@ -13,11 +13,12 @@ func (u *UseCases) EmojiHandle(ctx context.Context, b *bot.Bot, update *models.U
 		return false, nil
 	}
 
-	emoji, ok, err := u.repo.RandomEmoji(ctx)
+	botInfo, err := u.repo.BotInfo(ctx)
 	if err != nil {
-		return true, fmt.Errorf("emoji handle: %w", err)
+		return true, fmt.Errorf("emoji handle: bot info: %w", err)
 	}
 
+	emoji, ok := botInfo.RandomEmoji()
 	if !ok {
 		return false, nil
 	}

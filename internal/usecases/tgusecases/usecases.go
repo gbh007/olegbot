@@ -1,6 +1,7 @@
 package tgusecases
 
 import (
+	"app/internal/domain"
 	"context"
 )
 
@@ -9,8 +10,7 @@ type repository interface {
 	AddQuote(ctx context.Context, text string, userID, chatID int64) error
 	IsModerator(ctx context.Context, userID int64) (bool, error)
 	QuoteExists(ctx context.Context, text string) (bool, error)
-	RandomEmoji(ctx context.Context) (string, bool, error)
-	Tags(ctx context.Context) ([]string, error)
+	BotInfo(ctx context.Context) (domain.Bot, error)
 }
 
 type UseCases struct {

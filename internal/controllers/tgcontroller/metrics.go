@@ -41,22 +41,6 @@ func (c *Controller) counterMiddleware() bot.Middleware {
 	}
 }
 
-func (c *Controller) accessMiddleware() bot.Middleware {
-	return func(next bot.HandlerFunc) bot.HandlerFunc {
-		return func(ctx context.Context, bot *bot.Bot, update *models.Update) {
-			if update.Message != nil {
-				for _, cid := range c.allowedChats {
-					if update.Message.Chat.ID == cid {
-						next(ctx, bot, update)
-
-						return
-					}
-				}
-			}
-
-		}
-	}
-}
 
 func (c *Controller) handleWrapper(next handler, name string) handler {
 	return func(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error) {

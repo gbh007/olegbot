@@ -27,6 +27,7 @@ type useCases interface {
 	AddQuoteHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
 	CommentHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
 	SelfHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
+	AccessMiddleware() bot.Middleware
 }
 
 type Controller struct {
@@ -68,7 +69,7 @@ func (c *Controller) Serve(ctx context.Context) error {
 	middlewares = append(middlewares, c.counterMiddleware())
 
 	if len(c.allowedChats) > 0 {
-		middlewares = append(middlewares, c.accessMiddleware())
+		middlewares = append(middlewares, c.useCases.AccessMiddleware())
 	}
 
 	opts := []bot.Option{

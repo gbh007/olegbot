@@ -2,9 +2,9 @@ package postgresql
 
 import (
 	"app/internal/dataproviders/postgresql/migration"
+	"app/internal/domain"
 	"context"
 	"fmt"
-	"strings"
 	"sync/atomic"
 
 	"github.com/jmoiron/sqlx"
@@ -18,41 +18,16 @@ type Repository struct {
 
 	moderators atomic.Pointer[map[int64]struct{}]
 
-	emojiList   []string // FIXME: брать из БД
-	emojiChance float32  // FIXME: брать из БД
-	tags        []string // FIXME: брать из БД
+	botInfo domain.Bot // FIXME: получать данные из БД
 
 	db *sqlx.DB
 }
 
-func New(
-	emojiList []string,
-	emojiChance float32,
-	rawTags []string,
-	botName, botTag string,
-) *Repository {
-	tags := make([]string, 0, len(rawTags)+2)
-
-	if botName != "" {
-		tags = append(tags, strings.ToLower(botName))
-	}
-
-	if botTag != "" {
-		tags = append(tags, strings.ToLower(botTag))
-	}
-
-	for _, tag := range rawTags {
-		if tag != "" {
-			tags = append(tags, strings.ToLower(tag))
-		}
-	}
-
+func New(botInfo domain.Bot) *Repository {
 	return &Repository{
-		data:        atomic.Pointer[[]string]{},
-		moderators:  atomic.Pointer[map[int64]struct{}]{},
-		emojiList:   emojiList,
-		emojiChance: emojiChance,
-		tags:        tags,
+		data:       atomic.Pointer[[]string]{},
+		moderators: atomic.Pointer[map[int64]struct{}]{},
+		botInfo:    botInfo,
 	}
 }
 

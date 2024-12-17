@@ -4,11 +4,13 @@ import (
 	"app/internal/controllers/cmscontroller"
 	"app/internal/controllers/tgcontroller"
 	"app/internal/dataproviders/postgresql"
+	"app/internal/domain"
 	"app/internal/usecases/cmsusecases"
 	"app/internal/usecases/tgusecases"
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/vrischmann/envconfig"
 )
@@ -34,6 +36,34 @@ type appConfig struct {
 	} `envconfig:"optional"`
 }
 
+func (cfg appConfig) toBot() domain.Bot {
+	tags := make([]string, 0, len(cfg.Bot.Tags)+2)
+
+	if cfg.Bot.Name != "" {
+		tags = append(tags, strings.ToLower(cfg.Bot.Name))
+	}
+
+	if cfg.Bot.Tag != "" {
+		tags = append(tags, strings.ToLower(cfg.Bot.Tag))
+	}
+
+	for _, tag := range cfg.Bot.Tags {
+		if tag != "" {
+			tags = append(tags, strings.ToLower(tag))
+		}
+	}
+
+	return domain.Bot{
+		EmojiList:    cfg.Emoji.List,
+		EmojiChance:  cfg.Emoji.Chance,
+		Tags:         tags,
+		Name:         cfg.Bot.Name,
+		Tag:          cfg.Bot.Tag,
+		Token:        cfg.Token,
+		AllowedChats: cfg.Bot.AllowedChats,
+	}
+}
+
 type App struct {
 	logger *slog.Logger
 
@@ -56,12 +86,7 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: envconfig: %w", err)
 	}
 
-	repo := postgresql.New(
-		cfg.Emoji.List,
-		cfg.Emoji.Chance,
-		cfg.Bot.Tags,
-		cfg.Bot.Name, cfg.Bot.Tag,
-	)
+	repo := postgresql.New(cfg.toBot())
 
 	err = repo.Load(ctx, cfg.Repo)
 	if err != nil {
