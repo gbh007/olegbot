@@ -3,7 +3,6 @@ package tgcontroller
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -14,7 +13,6 @@ type Config struct {
 
 	BotName      string
 	BotTag       string
-	Tags         []string
 	AllowedChats []int64
 
 	UseCases useCases
@@ -23,13 +21,15 @@ type Config struct {
 type handler func(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
 
 type useCases interface {
-	RandomQuote(context.Context) (string, error)
-	AddQuote(ctx context.Context, text string, userID, chatID int64) error
-	RandomEmoji(ctx context.Context) (string, bool, error)
+	EmojiHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
+	WhoHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
+	QuoteHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
+	AddQuoteHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
+	CommentHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
+	SelfHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
 }
 
 type Controller struct {
-	tags         []string
 	allowedChats []int64
 
 	tgToken string
@@ -42,24 +42,7 @@ type Controller struct {
 }
 
 func New(cfg Config) *Controller {
-	tags := make([]string, 0, len(cfg.Tags)+2)
-
-	if cfg.BotName != "" {
-		tags = append(tags, strings.ToLower(cfg.BotName))
-	}
-
-	if cfg.BotTag != "" {
-		tags = append(tags, strings.ToLower(cfg.BotTag))
-	}
-
-	for _, tag := range cfg.Tags {
-		if tag != "" {
-			tags = append(tags, strings.ToLower(tag))
-		}
-	}
-
 	c := &Controller{
-		tags:         tags,
 		allowedChats: cfg.AllowedChats,
 
 		tgToken: cfg.Token,
@@ -69,12 +52,12 @@ func New(cfg Config) *Controller {
 
 	c.handlers = append(
 		c.handlers,
-		c.handleWrapper(c.commentHandle, "comment"),
-		c.handleWrapper(c.quoteHandle, "quote"),
-		c.handleWrapper(c.addQuoteHandle, "add_quote"),
-		c.handleWrapper(c.whoHandle, "who"),
-		c.handleWrapper(c.selfHandle, "self"),
-		c.handleWrapper(c.emojiHandle, "emoji"),
+		c.handleWrapper(c.useCases.CommentHandle, "comment"),
+		c.handleWrapper(c.useCases.QuoteHandle, "quote"),
+		c.handleWrapper(c.useCases.AddQuoteHandle, "add_quote"),
+		c.handleWrapper(c.useCases.WhoHandle, "who"),
+		c.handleWrapper(c.useCases.SelfHandle, "self"),
+		c.handleWrapper(c.useCases.EmojiHandle, "emoji"),
 	)
 
 	return c

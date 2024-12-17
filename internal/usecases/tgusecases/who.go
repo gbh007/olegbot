@@ -1,4 +1,4 @@
-package tgcontroller
+package tgusecases
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/go-telegram/bot/models"
 )
 
-func (c *Controller) whoHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error) {
+func (u *UseCases) WhoHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error) {
 	if update.Message == nil {
 		return false, nil
 	}

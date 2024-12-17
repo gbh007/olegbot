@@ -70,12 +70,13 @@ func (a *App) Init(ctx context.Context) error {
 			Token:        cfg.Token,
 			BotName:      cfg.Bot.Name,
 			BotTag:       cfg.Bot.Tag,
-			Tags:         cfg.Bot.Tags,
 			AllowedChats: cfg.Bot.AllowedChats,
 			UseCases: tgusecases.New(
 				repo,
 				cfg.Emoji.List,
 				cfg.Emoji.Chance,
+				cfg.Bot.Tags,
+				cfg.Bot.Name, cfg.Bot.Tag,
 			),
 		},
 	)
