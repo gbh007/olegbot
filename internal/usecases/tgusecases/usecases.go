@@ -2,7 +2,6 @@ package tgusecases
 
 import (
 	"context"
-	"strings"
 )
 
 type repository interface {
@@ -10,13 +9,12 @@ type repository interface {
 	AddQuote(ctx context.Context, text string, userID, chatID int64) error
 	IsModerator(ctx context.Context, userID int64) (bool, error)
 	QuoteExists(ctx context.Context, text string) (bool, error)
+	RandomEmoji(ctx context.Context) (string, bool, error)
+	Tags(ctx context.Context) ([]string, error)
 }
 
 type UseCases struct {
-	repo        repository
-	emojiList   []string
-	emojiChance float32
-	tags        []string
+	repo repository
 }
 
 func New(
@@ -26,26 +24,7 @@ func New(
 	rawTags []string,
 	botName, botTag string,
 ) *UseCases {
-	tags := make([]string, 0, len(rawTags)+2) // FIXME: в репозиторий
-
-	if botName != "" {
-		tags = append(tags, strings.ToLower(botName))
-	}
-
-	if botTag != "" {
-		tags = append(tags, strings.ToLower(botTag))
-	}
-
-	for _, tag := range rawTags {
-		if tag != "" {
-			tags = append(tags, strings.ToLower(tag))
-		}
-	}
-
 	return &UseCases{
-		repo:        repo,
-		emojiList:   emojiList,
-		emojiChance: emojiChance,
-		tags:        tags,
+		repo: repo,
 	}
 }

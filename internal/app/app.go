@@ -56,7 +56,12 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: envconfig: %w", err)
 	}
 
-	repo := postgresql.New()
+	repo := postgresql.New(
+		cfg.Emoji.List,
+		cfg.Emoji.Chance,
+		cfg.Bot.Tags,
+		cfg.Bot.Name, cfg.Bot.Tag,
+	)
 
 	err = repo.Load(ctx, cfg.Repo)
 	if err != nil {

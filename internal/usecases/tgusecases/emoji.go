@@ -3,27 +3,17 @@ package tgusecases
 import (
 	"context"
 	"fmt"
-	"math/rand"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
-
-// FIXME: в репозиторий
-func (u *UseCases) RandomEmoji(ctx context.Context) (string, bool, error) {
-	if rand.Float32() > u.emojiChance || len(u.emojiList) == 0 {
-		return "", false, nil
-	}
-
-	return (u.emojiList)[rand.Intn(len(u.emojiList))], true, nil
-}
 
 func (u *UseCases) EmojiHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error) {
 	if update.Message == nil {
 		return false, nil
 	}
 
-	emoji, ok, err := u.RandomEmoji(ctx)
+	emoji, ok, err := u.repo.RandomEmoji(ctx)
 	if err != nil {
 		return true, fmt.Errorf("emoji handle: %w", err)
 	}

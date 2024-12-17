@@ -17,12 +17,17 @@ func (u *UseCases) SelfHandle(ctx context.Context, b *bot.Bot, update *models.Up
 	messageText := strings.ToLower(update.Message.Text)
 	captionText := strings.ToLower(update.Message.Caption)
 
-	if len(u.tags) == 0 {
+	tags, err := u.repo.Tags(ctx)
+	if err != nil {
+		return false, fmt.Errorf("self handle: get tags: %w", err)
+	}
+
+	if len(tags) == 0 {
 		return false, nil
 	}
 
 	found := false
-	for _, tag := range u.tags {
+	for _, tag := range tags {
 		if strings.Contains(messageText, tag) || strings.Contains(captionText, tag) {
 			found = true
 			break
