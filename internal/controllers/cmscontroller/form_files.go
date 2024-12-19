@@ -30,7 +30,7 @@ func (cnt *Controller) ffQuoteHandler() echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		err = cnt.useCases.AddQuotes(c.Request().Context(), req)
+		err = cnt.useCases.AddQuotes(c.Request().Context(), cnt.botID, req)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

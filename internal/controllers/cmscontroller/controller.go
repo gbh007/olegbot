@@ -16,18 +16,18 @@ import (
 )
 
 type useCases interface {
-	Quotes(ctx context.Context) ([]domain.Quote, error)
+	Quotes(ctx context.Context, botID int64) ([]domain.Quote, error)
 
 	Quote(ctx context.Context, id int64) (domain.Quote, error)
 	DeleteQuote(ctx context.Context, id int64) error
 	UpdateQuoteText(ctx context.Context, id int64, text string) error
-	AddQuote(ctx context.Context, text string) error
+	AddQuote(ctx context.Context, botID int64, text string) error
 
-	Moderators(ctx context.Context) ([]domain.Moderator, error)
-	AddModerator(ctx context.Context, userID int64, description string) error
-	DeleteModerator(ctx context.Context, userID int64) error
+	Moderators(ctx context.Context, botID int64) ([]domain.Moderator, error)
+	AddModerator(ctx context.Context, botID, userID int64, description string) error
+	DeleteModerator(ctx context.Context, botID, userID int64) error
 
-	AddQuotes(ctx context.Context, quotes []string) error
+	AddQuotes(ctx context.Context, botID int64, quotes []string) error
 }
 
 type botController interface {
@@ -53,6 +53,8 @@ type Controller struct {
 	cmsPass  string
 	debug    bool
 
+	botID int64
+
 	useCases      useCases
 	botController botController
 }
@@ -65,6 +67,8 @@ func New(cfg Config, useCases useCases, botController botController) *Controller
 		cmsPass:  cfg.CMSPass,
 
 		debug: cfg.Debug,
+
+		botID: 1, // FIXME: временно прибито гвоздями
 
 		useCases:      useCases,
 		botController: botController,

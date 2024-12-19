@@ -18,8 +18,8 @@ func (uc *UseCases) UpdateQuoteText(ctx context.Context, id int64, text string) 
 	return uc.repo.UpdateQuoteText(ctx, id, text) // Пока просто проксируем
 }
 
-func (u *UseCases) AddQuote(ctx context.Context, text string) error {
-	exists, err := u.repo.QuoteExists(ctx, text)
+func (u *UseCases) AddQuote(ctx context.Context, botID int64, text string) error {
+	exists, err := u.repo.QuoteExists(ctx, botID, text)
 	if err != nil {
 		return fmt.Errorf("use case: add quote: %w", err)
 	}
@@ -28,7 +28,7 @@ func (u *UseCases) AddQuote(ctx context.Context, text string) error {
 		return fmt.Errorf("use case: add quote: %w", domain.QuoteAlreadyExistsError)
 	}
 
-	err = u.repo.AddQuote(ctx, text, 0, 0)
+	err = u.repo.AddQuote(ctx, botID, text, 0, 0)
 	if err != nil {
 		return fmt.Errorf("use case: add quote: %w", err)
 	}
@@ -36,9 +36,9 @@ func (u *UseCases) AddQuote(ctx context.Context, text string) error {
 	return nil
 }
 
-func (u *UseCases) AddQuotes(ctx context.Context, quotes []string) error {
+func (u *UseCases) AddQuotes(ctx context.Context, botID int64, quotes []string) error {
 	for _, text := range quotes {
-		exists, err := u.repo.QuoteExists(ctx, text)
+		exists, err := u.repo.QuoteExists(ctx, botID, text)
 		if err != nil {
 			return fmt.Errorf("use case: add quotes: %w", err)
 		}
@@ -47,7 +47,7 @@ func (u *UseCases) AddQuotes(ctx context.Context, quotes []string) error {
 			continue
 		}
 
-		err = u.repo.AddQuote(ctx, text, 0, 0)
+		err = u.repo.AddQuote(ctx, botID, text, 0, 0)
 		if err != nil {
 			return fmt.Errorf("use case: add quotes: %w", err)
 		}

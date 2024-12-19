@@ -1,58 +1,61 @@
 package postgresql
 
 import (
-	"app/internal/dataproviders/postgresql/migration"
-	"app/internal/domain"
 	"context"
 	"fmt"
-	"sync/atomic"
+	"log/slog"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq" // драйвер для PostgreSQL
-
-	migrator "gitlab.com/gbh007/go-sql-migrator"
 )
 
 type Repository struct {
-	data atomic.Pointer[[]string]
+	pool *pgxpool.Pool
+	db   *sqlx.DB
 
-	moderators atomic.Pointer[map[int64]struct{}]
-
-	botInfo domain.Bot // FIXME: получать данные из БД
-
-	db *sqlx.DB
+	logger *slog.Logger
+	debug  bool
 }
 
-func New(botInfo domain.Bot) *Repository {
+func New(ctx context.Context, dataSourceName string, maxConn int32, logger *slog.Logger, debug bool) (*Repository, error) {
+	pgxConfig, err := pgxpool.ParseConfig(dataSourceName)
+	if err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
+	}
+
+	if maxConn > 0 {
+		pgxConfig.MaxConns = maxConn
+	}
+
+	dbpool, err := pgxpool.NewWithConfig(ctx, pgxConfig)
+	if err != nil {
+		return nil, fmt.Errorf("create pool: %w", err)
+	}
+
+	db := sqlx.NewDb(stdlib.OpenDBFromPool(dbpool), "pgx")
+
+	err = migrate(ctx, logger, db.DB)
+	if err != nil {
+		return nil, fmt.Errorf("migrate: %w", err)
+	}
+
 	return &Repository{
-		data:       atomic.Pointer[[]string]{},
-		moderators: atomic.Pointer[map[int64]struct{}]{},
-		botInfo:    botInfo,
-	}
+		pool:   dbpool,
+		db:     db,
+		logger: logger,
+		debug:  debug,
+	}, nil
 }
 
-func (r *Repository) connect(_ context.Context, source string) error {
-	db, err := sqlx.Open("postgres", source)
-	if err != nil {
-		return fmt.Errorf("connect: %w", err)
+func (r *Repository) squirrelDebugLog(ctx context.Context, query string, args []any) {
+	if !r.debug {
+		return
 	}
 
-	db.SetMaxOpenConns(10)
-
-	r.db = db
-
-	return nil
-}
-
-func (r *Repository) migrate(ctx context.Context) error {
-	err := migrator.New().
-		WithFS(migration.Migrations).
-		WithProvider(migrator.PostgreSQLProvider).
-		MigrateAll(ctx, r.db, true)
-
-	if err != nil {
-		return fmt.Errorf("migrate: %w", err)
-	}
-
-	return nil
+	r.logger.DebugContext(
+		ctx, "squirrel build request",
+		slog.String("query", query),
+		slog.Any("args", args),
+	)
 }

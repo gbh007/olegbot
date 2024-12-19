@@ -5,6 +5,6 @@ import (
 	"context"
 )
 
-func (uc *UseCases) Quotes(ctx context.Context) ([]domain.Quote, error) {
-	return uc.repo.Quotes(ctx) // Пока просто проксируем
+func (uc *UseCases) Quotes(ctx context.Context, botID int64) ([]domain.Quote, error) {
+	return uc.repo.Quotes(ctx, botID) // Пока просто проксируем
 }

@@ -9,12 +9,7 @@ import (
 )
 
 type Config struct {
-	Token string
-
-	BotName      string
-	BotTag       string
-	AllowedChats []int64
-
+	Token    string
 	UseCases useCases
 }
 
@@ -31,8 +26,6 @@ type useCases interface {
 }
 
 type Controller struct {
-	allowedChats []int64
-
 	tgToken string
 
 	useCases useCases
@@ -44,10 +37,7 @@ type Controller struct {
 
 func New(cfg Config) *Controller {
 	c := &Controller{
-		allowedChats: cfg.AllowedChats,
-
-		tgToken: cfg.Token,
-
+		tgToken:  cfg.Token,
 		useCases: cfg.UseCases,
 	}
 
@@ -67,10 +57,7 @@ func New(cfg Config) *Controller {
 func (c *Controller) Serve(ctx context.Context) error {
 	middlewares := make([]bot.Middleware, 0, 2)
 	middlewares = append(middlewares, c.counterMiddleware())
-
-	if len(c.allowedChats) > 0 {
-		middlewares = append(middlewares, c.useCases.AccessMiddleware())
-	}
+	middlewares = append(middlewares, c.useCases.AccessMiddleware())
 
 	opts := []bot.Option{
 		bot.WithMiddlewares(middlewares...),

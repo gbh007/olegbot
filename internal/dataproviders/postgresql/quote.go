@@ -3,43 +3,33 @@ package postgresql
 import (
 	"app/internal/domain"
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
-	"math/rand"
 	"strings"
+	"time"
+
+	"github.com/Masterminds/squirrel"
 )
 
-var errNoQuotes = errors.New("no quotes")
+func (r *Repository) AddQuote(ctx context.Context, botID int64, text string, userID, chatID int64) error {
+	builder := squirrel.Insert("quotes").
+		PlaceholderFormat(squirrel.Dollar).
+		SetMap(
+			map[string]interface{}{
+				"bot_id":  botID,
+				"text":    text,
+				"user_id": Int64ToDB(userID),
+				"chat_id": Int64ToDB(chatID),
+			},
+		)
 
-func (r *Repository) RandomQuote(_ context.Context) (string, error) {
-	data := r.data.Load()
-	if data == nil || len(*data) == 0 {
-		return "", errNoQuotes
-	}
-
-	return (*data)[rand.Intn(len(*data))], nil
-}
-
-func (r *Repository) AddQuote(ctx context.Context, text string, userID, chatID int64) error {
-	_, err := r.db.ExecContext(
-		ctx,
-		`INSERT INTO "quotes" ("text", user_id, chat_id) VALUES ($1, $2, $3);`,
-		text,
-		sql.NullInt64{
-			Int64: userID,
-			Valid: userID != 0,
-		},
-		sql.NullInt64{
-			Int64: chatID,
-			Valid: chatID != 0,
-		},
-	)
+	query, args, err := builder.ToSql()
 	if err != nil {
-		return fmt.Errorf("repository: add quote: %w", err)
+		return fmt.Errorf("repository: build query: %w", err)
 	}
 
-	err = r.reloadQuoteCache(ctx)
+	r.squirrelDebugLog(ctx, query, args)
+
+	_, err = r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("repository: add quote: %w", err)
 	}
@@ -47,14 +37,14 @@ func (r *Repository) AddQuote(ctx context.Context, text string, userID, chatID i
 	return nil
 }
 
-func (r *Repository) QuoteExists(ctx context.Context, text string) (bool, error) {
+func (r *Repository) QuoteExists(ctx context.Context, botID int64, text string) (bool, error) {
 	var count int64
 
 	err := r.db.GetContext(
 		ctx,
 		&count,
-		`SELECT COUNT(*) FROM "quotes" WHERE LOWER("text") = $1;`,
-		strings.ToLower(text),
+		`SELECT COUNT(*) FROM "quotes" WHERE bot_id = $1 AND LOWER("text") = $2;`,
+		botID, strings.ToLower(text),
 	)
 	if err != nil {
 		return false, fmt.Errorf("repository: quote exists: %w", err)
@@ -89,25 +79,15 @@ func (r *Repository) DeleteQuote(ctx context.Context, id int64) error {
 		return fmt.Errorf("repository: delete quote: %w", err)
 	}
 
-	err = r.reloadQuoteCache(ctx)
-	if err != nil {
-		return fmt.Errorf("repository: delete quote: %w", err)
-	}
-
 	return nil
 }
 
 func (r *Repository) UpdateQuoteText(ctx context.Context, id int64, text string) error {
 	_, err := r.db.ExecContext(
 		ctx,
-		`UPDATE "quotes" SET text = $2 WHERE id = $1;`,
-		id, text,
+		`UPDATE "quotes" SET text = $2, update_at = $3 WHERE id = $1;`,
+		id, text, time.Now().UTC(),
 	)
-	if err != nil {
-		return fmt.Errorf("repository: update quote text: %w", err)
-	}
-
-	err = r.reloadQuoteCache(ctx)
 	if err != nil {
 		return fmt.Errorf("repository: update quote text: %w", err)
 	}

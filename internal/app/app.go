@@ -4,25 +4,16 @@ import (
 	"app/internal/controllers/cmscontroller"
 	"app/internal/controllers/tgcontroller"
 	"app/internal/dataproviders/postgresql"
-	"app/internal/domain"
 	"app/internal/usecases/cmsusecases"
 	"app/internal/usecases/tgusecases"
 	"context"
 	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/vrischmann/envconfig"
 )
 
 type appConfig struct {
-	Token string
-	Bot   struct {
-		Name         string   `envconfig:"optional"`
-		Tag          string   `envconfig:"optional"`
-		Tags         []string `envconfig:"optional"`
-		AllowedChats []int64  `envconfig:"optional"`
-	} `envconfig:"optional"`
 	Repo string
 	Addr string `envconfig:"optional"`
 	CMS  struct {
@@ -30,38 +21,6 @@ type appConfig struct {
 		Password string `envconfig:"optional"`
 	} `envconfig:"optional"`
 	Debug bool `envconfig:"optional"`
-	Emoji struct {
-		List   []string `envconfig:"optional"`
-		Chance float32  `envconfig:"optional"`
-	} `envconfig:"optional"`
-}
-
-func (cfg appConfig) toBot() domain.Bot {
-	tags := make([]string, 0, len(cfg.Bot.Tags)+2)
-
-	if cfg.Bot.Name != "" {
-		tags = append(tags, strings.ToLower(cfg.Bot.Name))
-	}
-
-	if cfg.Bot.Tag != "" {
-		tags = append(tags, strings.ToLower(cfg.Bot.Tag))
-	}
-
-	for _, tag := range cfg.Bot.Tags {
-		if tag != "" {
-			tags = append(tags, strings.ToLower(tag))
-		}
-	}
-
-	return domain.Bot{
-		EmojiList:    cfg.Emoji.List,
-		EmojiChance:  cfg.Emoji.Chance,
-		Tags:         tags,
-		Name:         cfg.Bot.Name,
-		Tag:          cfg.Bot.Tag,
-		Token:        cfg.Token,
-		AllowedChats: cfg.Bot.AllowedChats,
-	}
 }
 
 type App struct {
@@ -78,7 +37,6 @@ func New(logger *slog.Logger) *App {
 }
 
 func (a *App) Init(ctx context.Context) error {
-
 	cfg := new(appConfig)
 
 	err := envconfig.Init(cfg)
@@ -86,27 +44,22 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: envconfig: %w", err)
 	}
 
-	repo := postgresql.New(cfg.toBot())
-
-	err = repo.Load(ctx, cfg.Repo)
+	repo, err := postgresql.New(ctx, cfg.Repo, 10, a.logger, cfg.Debug)
 	if err != nil {
 		return fmt.Errorf("app: init: repository: %w", err)
 	}
 
-	fmt.Println(cfg.Bot.AllowedChats)
+	botInfo, err := repo.BotInfo(ctx, 1) // FIXME: после рефакторинга не хардкодить
+	if err != nil {
+		return fmt.Errorf("app: init: get default bot: %w", err)
+	}
 
 	a.tgController = tgcontroller.New(
 		tgcontroller.Config{
-			Token:        cfg.Token,
-			BotName:      cfg.Bot.Name,
-			BotTag:       cfg.Bot.Tag,
-			AllowedChats: cfg.Bot.AllowedChats,
+			Token: botInfo.Token,
 			UseCases: tgusecases.New(
 				repo,
-				cfg.Emoji.List,
-				cfg.Emoji.Chance,
-				cfg.Bot.Tags,
-				cfg.Bot.Name, cfg.Bot.Tag,
+				1, // FIXME: после рефакторинга не хардкодить
 			),
 		},
 	)

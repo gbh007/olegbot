@@ -11,7 +11,7 @@ import (
 
 func (cnt *Controller) moderatorsHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		rawModerators, err := cnt.useCases.Moderators(c.Request().Context())
+		rawModerators, err := cnt.useCases.Moderators(c.Request().Context(), cnt.botID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -34,7 +34,7 @@ func (cnt *Controller) addModeratorHandler() echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		err = cnt.useCases.AddModerator(c.Request().Context(), req.UserID, req.Description)
+		err = cnt.useCases.AddModerator(c.Request().Context(), cnt.botID, req.UserID, req.Description)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -50,7 +50,7 @@ func (cnt *Controller) deleteModeratorHandler() echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		err = cnt.useCases.DeleteModerator(c.Request().Context(), id)
+		err = cnt.useCases.DeleteModerator(c.Request().Context(), cnt.botID, id)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

@@ -11,7 +11,7 @@ import (
 
 func (cnt *Controller) quotesHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		rawQuotes, err := cnt.useCases.Quotes(c.Request().Context())
+		rawQuotes, err := cnt.useCases.Quotes(c.Request().Context(), cnt.botID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -89,7 +89,7 @@ func (cnt *Controller) addQuoteHandler() echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		err = cnt.useCases.AddQuote(c.Request().Context(), req.Text)
+		err = cnt.useCases.AddQuote(c.Request().Context(), cnt.botID, req.Text)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

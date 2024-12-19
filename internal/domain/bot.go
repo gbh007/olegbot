@@ -5,6 +5,10 @@ import (
 )
 
 type Bot struct {
+	ID int64
+
+	Enabled bool
+
 	EmojiList   []string
 	EmojiChance float32
 	Tags        []string

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strings"
 
 	"github.com/go-telegram/bot"
@@ -12,16 +13,20 @@ import (
 )
 
 func (u *UseCases) RandomQuote(ctx context.Context) (string, error) {
-	quote, err := u.repo.RandomQuote(ctx)
+	quotes, err := u.repo.Quotes(ctx, u.botID)
 	if err != nil {
 		return "", fmt.Errorf("use case: random quote: %w", err)
 	}
 
-	return quote, nil
+	if len(quotes) == 0 {
+		return "", fmt.Errorf("use case: random quote: no quotes")
+	}
+
+	return quotes[rand.Intn(len(quotes))].Text, nil
 }
 
 func (u *UseCases) AddQuote(ctx context.Context, text string, userID, chatID int64) error {
-	ok, err := u.repo.IsModerator(ctx, userID)
+	ok, err := u.repo.IsModerator(ctx, u.botID, userID)
 	if err != nil {
 		return fmt.Errorf("use case: add quote: %w", err)
 	}
@@ -30,7 +35,7 @@ func (u *UseCases) AddQuote(ctx context.Context, text string, userID, chatID int
 		return fmt.Errorf("use case: add quote: %w", domain.PermissionDeniedError)
 	}
 
-	exists, err := u.repo.QuoteExists(ctx, text)
+	exists, err := u.repo.QuoteExists(ctx, u.botID, text)
 	if err != nil {
 		return fmt.Errorf("use case: add quote: %w", err)
 	}
@@ -39,7 +44,7 @@ func (u *UseCases) AddQuote(ctx context.Context, text string, userID, chatID int
 		return fmt.Errorf("use case: add quote: %w", domain.QuoteAlreadyExistsError)
 	}
 
-	err = u.repo.AddQuote(ctx, text, userID, chatID)
+	err = u.repo.AddQuote(ctx, u.botID, text, userID, chatID)
 	if err != nil {
 		return fmt.Errorf("use case: add quote: %w", err)
 	}
