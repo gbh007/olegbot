@@ -18,6 +18,12 @@ type repository interface {
 	Moderators(ctx context.Context, botID int64) ([]domain.Moderator, error)
 	AddModerator(ctx context.Context, botID, userID int64, description string) error
 	DeleteModerator(ctx context.Context, botID, userID int64) error
+
+	GetBot(ctx context.Context, botID int64) (domain.Bot, error)
+	CreateBot(ctx context.Context, bot domain.Bot) error
+	UpdateBot(ctx context.Context, bot domain.Bot) error
+	DeleteBot(ctx context.Context, id int64) error
+	GetBots(ctx context.Context) ([]domain.Bot, error)
 }
 
 type UseCases struct {

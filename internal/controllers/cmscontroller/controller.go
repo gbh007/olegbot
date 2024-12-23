@@ -28,6 +28,11 @@ type useCases interface {
 	DeleteModerator(ctx context.Context, botID, userID int64) error
 
 	AddQuotes(ctx context.Context, botID int64, quotes []string) error
+
+	CreateBot(ctx context.Context, bot domain.Bot) error
+	UpdateBot(ctx context.Context, bot domain.Bot) error
+	DeleteBot(ctx context.Context, id int64) error
+	GetBots(ctx context.Context) ([]domain.Bot, error)
 }
 
 type botController interface {
@@ -106,6 +111,11 @@ func (c *Controller) Serve(ctx context.Context) error {
 	echoRouter.POST("/api/ff/media", c.ffMediaHandler())
 
 	echoRouter.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+
+	echoRouter.GET("/api/bot/list", c.listBotHandler())
+	echoRouter.POST("/api/bot/create", c.createBotHandler())
+	echoRouter.POST("/api/bot/update", c.updateBotHandler())
+	echoRouter.POST("/api/bot/delete", c.deleteBotHandler())
 
 	go func() { // Стоит переписать, пока временная затычка
 		<-ctx.Done()
