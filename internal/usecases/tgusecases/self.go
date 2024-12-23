@@ -17,7 +17,7 @@ func (u *UseCases) SelfHandle(ctx context.Context, b *bot.Bot, update *models.Up
 	messageText := strings.ToLower(update.Message.Text)
 	captionText := strings.ToLower(update.Message.Caption)
 
-	botInfo, err := u.repo.BotInfo(ctx, u.botID)
+	botInfo, err := u.repo.GetBot(ctx, u.botID)
 	if err != nil {
 		return true, fmt.Errorf("self handle: bot info: %w", err)
 	}

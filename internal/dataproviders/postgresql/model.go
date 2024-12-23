@@ -32,12 +32,40 @@ func (v botModel) toDomain() domain.Bot {
 		Enabled:      v.Enabled,
 		Name:         v.Name,
 		Tag:          v.BotTag,
+		Description:  v.Description.String,
 		Token:        v.Token,
 		EmojiList:    v.EmojiList.Elements,
 		EmojiChance:  float32(v.EmojiChance.Float64),
 		Tags:         v.Tags.Elements,
 		AllowedChats: v.AllowedChats.Elements,
 	}
+}
+
+func (v *botModel) fromDomain(raw domain.Bot) {
+	v.ID = raw.ID
+	v.Name = raw.Name
+	v.BotTag = raw.Tag
+	v.Token = raw.Token
+	v.Enabled = raw.Enabled
+	v.Description = StringToDB(raw.Description)
+	v.EmojiList = pgtype.Array[string]{
+		Elements: raw.EmojiList,
+		Valid:    len(raw.EmojiList) > 0,
+	}
+	v.EmojiChance = sql.NullFloat64{
+		Float64: float64(raw.EmojiChance),
+		Valid:   raw.EmojiChance > 0,
+	}
+	v.Tags = pgtype.Array[string]{
+		Elements: raw.Tags,
+		Valid:    len(raw.Tags) > 0,
+	}
+	v.AllowedChats = pgtype.Array[int64]{
+		Elements: raw.AllowedChats,
+		Valid:    len(raw.AllowedChats) > 0,
+	}
+	v.CreateAt = raw.CreateAt
+	v.UpdateAt = TimeToDB(raw.UpdateAt)
 }
 
 func (v botModel) columns() []string {

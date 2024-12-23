@@ -11,7 +11,7 @@ func (u *UseCases) AccessMiddleware() bot.Middleware {
 	return func(next bot.HandlerFunc) bot.HandlerFunc {
 		return func(ctx context.Context, bot *bot.Bot, update *models.Update) {
 			if update.Message != nil {
-				botInfo, err := u.repo.BotInfo(ctx, u.botID)
+				botInfo, err := u.repo.GetBot(ctx, u.botID)
 				if err != nil {
 					// TODO: логировать ошибку
 					return

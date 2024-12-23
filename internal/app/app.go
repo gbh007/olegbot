@@ -49,7 +49,7 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: repository: %w", err)
 	}
 
-	botInfo, err := repo.BotInfo(ctx, 1) // FIXME: после рефакторинга не хардкодить
+	botInfo, err := repo.GetBot(ctx, 1) // FIXME: после рефакторинга не хардкодить
 	if err != nil {
 		return fmt.Errorf("app: init: get default bot: %w", err)
 	}

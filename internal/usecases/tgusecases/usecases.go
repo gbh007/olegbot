@@ -10,7 +10,7 @@ type repository interface {
 	AddQuote(ctx context.Context, botID int64, text string, userID, chatID int64) error
 	IsModerator(ctx context.Context, botID int64, userID int64) (bool, error)
 	QuoteExists(ctx context.Context, botID int64, text string) (bool, error)
-	BotInfo(ctx context.Context, botID int64) (domain.Bot, error)
+	GetBot(ctx context.Context, botID int64) (domain.Bot, error)
 }
 
 type UseCases struct {

@@ -2,6 +2,7 @@ package domain
 
 import (
 	"math/rand"
+	"time"
 )
 
 type Bot struct {
@@ -12,11 +13,15 @@ type Bot struct {
 	EmojiList   []string
 	EmojiChance float32
 	Tags        []string
-	Name        string // TODO: подумать над надобностью использовать
-	Tag         string // TODO: подумать над надобностью использовать
+	Name        string
+	Tag         string
+	Description string
 
 	Token        string
 	AllowedChats []int64
+
+	CreateAt time.Time
+	UpdateAt time.Time
 }
 
 func (r Bot) RandomEmoji() (string, bool) {
