@@ -56,3 +56,15 @@ func (req DeleteBotRequest) Validate() error {
 
 	return nil
 }
+
+type GetBotRequest struct {
+	ID int64 `json:"id"`
+}
+
+func (req GetBotRequest) Validate() error {
+	if req.ID < 1 {
+		return fmt.Errorf("%w: incorrect id", ErrInvalidData)
+	}
+
+	return nil
+}

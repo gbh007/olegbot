@@ -12,18 +12,18 @@ import (
 var _ pgx.RowScanner = (*botModel)(nil)
 
 type botModel struct {
-	ID           int64                `db:"id"`
-	Name         string               `db:"name"`
-	BotTag       string               `db:"bot_tag"`
-	Token        string               `db:"token"`
-	Enabled      bool                 `db:"enabled"`
-	Description  sql.NullString       `db:"description"`
-	EmojiList    pgtype.Array[string] `db:"emoji_list"`
-	EmojiChance  sql.NullFloat64      `db:"emoji_chance"`
-	Tags         pgtype.Array[string] `db:"tags"`
-	AllowedChats pgtype.Array[int64]  `db:"allowed_chats"`
-	CreateAt     time.Time            `db:"create_at"`
-	UpdateAt     sql.NullTime         `db:"update_at"`
+	ID           int64                    `db:"id"`
+	Name         string                   `db:"name"`
+	BotTag       string                   `db:"bot_tag"`
+	Token        string                   `db:"token"`
+	Enabled      bool                     `db:"enabled"`
+	Description  sql.NullString           `db:"description"`
+	EmojiList    pgtype.FlatArray[string] `db:"emoji_list"`
+	EmojiChance  sql.NullFloat64          `db:"emoji_chance"`
+	Tags         pgtype.FlatArray[string] `db:"tags"`
+	AllowedChats pgtype.FlatArray[int64]  `db:"allowed_chats"`
+	CreateAt     time.Time                `db:"create_at"`
+	UpdateAt     sql.NullTime             `db:"update_at"`
 }
 
 func (v botModel) toDomain() domain.Bot {
@@ -34,10 +34,12 @@ func (v botModel) toDomain() domain.Bot {
 		Tag:          v.BotTag,
 		Description:  v.Description.String,
 		Token:        v.Token,
-		EmojiList:    v.EmojiList.Elements,
+		EmojiList:    v.EmojiList,
 		EmojiChance:  float32(v.EmojiChance.Float64),
-		Tags:         v.Tags.Elements,
-		AllowedChats: v.AllowedChats.Elements,
+		Tags:         v.Tags,
+		AllowedChats: v.AllowedChats,
+		CreateAt:     v.CreateAt,
+		UpdateAt:     v.UpdateAt.Time,
 	}
 }
 
@@ -48,22 +50,13 @@ func (v *botModel) fromDomain(raw domain.Bot) {
 	v.Token = raw.Token
 	v.Enabled = raw.Enabled
 	v.Description = StringToDB(raw.Description)
-	v.EmojiList = pgtype.Array[string]{
-		Elements: raw.EmojiList,
-		Valid:    len(raw.EmojiList) > 0,
-	}
+	v.EmojiList = ArrayToDB(raw.EmojiList)
 	v.EmojiChance = sql.NullFloat64{
 		Float64: float64(raw.EmojiChance),
 		Valid:   raw.EmojiChance > 0,
 	}
-	v.Tags = pgtype.Array[string]{
-		Elements: raw.Tags,
-		Valid:    len(raw.Tags) > 0,
-	}
-	v.AllowedChats = pgtype.Array[int64]{
-		Elements: raw.AllowedChats,
-		Valid:    len(raw.AllowedChats) > 0,
-	}
+	v.Tags = ArrayToDB(raw.Tags)
+	v.AllowedChats = ArrayToDB(raw.AllowedChats)
 	v.CreateAt = raw.CreateAt
 	v.UpdateAt = TimeToDB(raw.UpdateAt)
 }
@@ -158,4 +151,12 @@ func Int64ToDB(i int64) sql.NullInt64 {
 		Int64: i,
 		Valid: i != 0,
 	}
+}
+
+func ArrayToDB[T any](raw []T) pgtype.FlatArray[T] {
+	if len(raw) == 0 {
+		return nil
+	}
+
+	return raw
 }

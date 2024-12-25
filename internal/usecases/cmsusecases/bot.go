@@ -22,3 +22,7 @@ func (u *UseCases) DeleteBot(ctx context.Context, id int64) error {
 func (u *UseCases) GetBots(ctx context.Context) ([]domain.Bot, error) {
 	return u.repo.GetBots(ctx)
 }
+
+func (u *UseCases) GetBot(ctx context.Context, botID int64) (domain.Bot, error) {
+	return u.repo.GetBot(ctx, botID)
+}

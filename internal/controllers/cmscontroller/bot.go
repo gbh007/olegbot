@@ -87,3 +87,26 @@ func (cnt *Controller) deleteBotHandler() echo.HandlerFunc {
 		return c.NoContent(http.StatusNoContent)
 	}
 }
+
+func (cnt *Controller) getBotHandler() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := binds.GetBotRequest{}
+
+		err := c.Bind(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		err = c.Validate(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		raw, err := cnt.useCases.GetBot(c.Request().Context(), req.ID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, render.BotFromDomain(raw))
+	}
+}
