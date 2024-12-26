@@ -28,8 +28,9 @@ CREATE TABLE
 
 CREATE TABLE
     moderators(
-        user_id INT8 NOT NULL PRIMARY KEY,
+        user_id INT8 NOT NULL,
         bot_id INT8 NOT NULL REFERENCES bots (id) ON UPDATE CASCADE ON DELETE CASCADE,
         create_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        description TEXT
+        description TEXT,
+        PRIMARY KEY(user_id, bot_id)
     );

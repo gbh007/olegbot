@@ -7,6 +7,7 @@ import {
 import { BotEditorScreen, BotListScreen, BotSelectScreen } from './features/bot';
 import { BotContext, BotContextType } from './context/bot';
 import { QuoteEditorScreen, QuoteListScreen } from './features/quote';
+import { ModeratorsScreen } from './features/moderator';
 
 
 const router = createHashRouter([
@@ -29,6 +30,10 @@ const router = createHashRouter([
   {
     path: "/quote/edit/:quoteID",
     element: <SimpleWrapper> <QuoteEditorScreen /></SimpleWrapper>,
+  },
+  {
+    path: "/moderator/list",
+    element: <SimpleWrapper> <ModeratorsScreen /></SimpleWrapper>,
   },
 ]);
 
@@ -65,6 +70,7 @@ function SimpleWrapper(props: PropsWithChildren) {
         <Link to="/">Главная </Link>
         <Link to="/bot/list">Список ботов </Link>
         <Link to="/quote/list">Список цитат </Link>
+        <Link to="/moderator/list">Список модераторов </Link>
         <span>Выбран бот: {bot.name}</span>
       </div>
 

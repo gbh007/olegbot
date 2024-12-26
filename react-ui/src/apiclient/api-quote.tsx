@@ -1,4 +1,4 @@
-import { PostAction, Response, useAPIGet, useAPIPost } from "./client-hooks"
+import { PostAction, Response, useAPIPost } from "./client-hooks"
 
 export interface QuoteModel {
     id: number

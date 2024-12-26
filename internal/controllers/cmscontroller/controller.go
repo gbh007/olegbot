@@ -103,9 +103,9 @@ func (c *Controller) Serve(ctx context.Context) error {
 	echoRouter.POST("/api/quote/update", c.updateQuoteHandler())
 	echoRouter.POST("/api/quote/delete", c.deleteQuoteHandler())
 
-	echoRouter.GET("/api/moderators", c.moderatorsHandler())
-	echoRouter.DELETE("/api/moderator", c.deleteModeratorHandler())
-	echoRouter.PUT("/api/moderator", c.addModeratorHandler())
+	echoRouter.POST("/api/moderator/list", c.moderatorsHandler())
+	echoRouter.POST("/api/moderator/create", c.addModeratorHandler())
+	echoRouter.POST("/api/moderator/delete", c.deleteModeratorHandler())
 
 	echoRouter.POST("/api/ff/quotes", c.ffQuoteHandler())
 	echoRouter.POST("/api/ff/media", c.ffMediaHandler())

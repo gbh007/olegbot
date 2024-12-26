@@ -4,20 +4,30 @@ import (
 	"app/internal/controllers/cmscontroller/internal/binds"
 	"app/internal/controllers/cmscontroller/internal/render"
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
 
 func (cnt *Controller) moderatorsHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		rawModerators, err := cnt.useCases.Moderators(c.Request().Context(), cnt.botID)
+		req := binds.ListModeratorRequest{}
+
+		err := c.Bind(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		err = c.Validate(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		rawModerators, err := cnt.useCases.Moderators(c.Request().Context(), req.BotID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		return c.JSON(http.StatusOK, render.ConvertSliceWithAlloc(rawModerators, render.ModeratorFromDomain))
-	}
+		return c.JSON(http.StatusOK, render.ConvertSliceWithAlloc(rawModerators, render.ModeratorFromDomain))	}
 }
 
 func (cnt *Controller) addModeratorHandler() echo.HandlerFunc {
@@ -34,7 +44,7 @@ func (cnt *Controller) addModeratorHandler() echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		err = cnt.useCases.AddModerator(c.Request().Context(), cnt.botID, req.UserID, req.Description)
+		err = cnt.useCases.AddModerator(c.Request().Context(), req.BotID, req.UserID, req.Description)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -45,12 +55,19 @@ func (cnt *Controller) addModeratorHandler() echo.HandlerFunc {
 
 func (cnt *Controller) deleteModeratorHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, err := strconv.ParseInt(c.QueryParam("id"), 10, 64)
+		req := binds.DeleteModeratorRequest{}
+
+		err := c.Bind(&req)
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		err = cnt.useCases.DeleteModerator(c.Request().Context(), cnt.botID, id)
+		err = c.Validate(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		err = cnt.useCases.DeleteModerator(c.Request().Context(), req.BotID, req.UserID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
