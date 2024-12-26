@@ -2,7 +2,6 @@ package cmscontroller
 
 import (
 	"app/internal/controllers/cmscontroller/internal/binds"
-	"app/internal/controllers/cmscontroller/internal/static"
 	"app/internal/domain"
 	"context"
 	"errors"
@@ -49,11 +48,15 @@ type Config struct {
 	CMSLogin string
 	CMSPass  string
 
+	StaticDirPath string
+
 	Debug bool
 }
 
 type Controller struct {
 	httpAddr string
+
+	staticDirPath string
 
 	cmsLogin string
 	cmsPass  string
@@ -66,6 +69,8 @@ type Controller struct {
 func New(cfg Config, useCases useCases, botController botController) *Controller {
 	return &Controller{
 		httpAddr: cfg.HTTPAddr,
+
+		staticDirPath: cfg.StaticDirPath,
 
 		cmsLogin: cfg.CMSLogin,
 		cmsPass:  cfg.CMSPass,
@@ -91,7 +96,10 @@ func (c *Controller) Serve(ctx context.Context) error {
 	echoRouter.Use(middleware.Recover())
 	echoRouter.Use(c.newBaseAuth())
 
-	echoRouter.StaticFS("/", static.StaticDir)
+	if c.staticDirPath != "" {
+		fmt.Println(c.staticDirPath)
+		echoRouter.Static("/", c.staticDirPath)
+	}
 
 	echoRouter.POST("/api/quote/list", c.quoteListHandler())
 	echoRouter.POST("/api/quote/get", c.quoteGetHandler())

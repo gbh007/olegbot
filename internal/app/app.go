@@ -17,8 +17,9 @@ type appConfig struct {
 	Repo string
 	Addr string `envconfig:"optional"`
 	CMS  struct {
-		Login    string `envconfig:"optional"`
-		Password string `envconfig:"optional"`
+		StaticDirPath string `envconfig:"optional,"`
+		Login         string `envconfig:"optional"`
+		Password      string `envconfig:"optional"`
 	} `envconfig:"optional"`
 	Debug bool `envconfig:"optional"`
 }
@@ -66,10 +67,11 @@ func (a *App) Init(ctx context.Context) error {
 
 	a.cmsController = cmscontroller.New(
 		cmscontroller.Config{
-			HTTPAddr: cfg.Addr,
-			CMSLogin: cfg.CMS.Login,
-			CMSPass:  cfg.CMS.Password,
-			Debug:    cfg.Debug,
+			HTTPAddr:      cfg.Addr,
+			CMSLogin:      cfg.CMS.Login,
+			CMSPass:       cfg.CMS.Password,
+			Debug:         cfg.Debug,
+			StaticDirPath: cfg.CMS.StaticDirPath,
 		},
 		cmsusecases.New(repo),
 		a.tgController, // FIXME: это конечно дич, но пока так проще.
