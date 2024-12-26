@@ -16,7 +16,7 @@ func (cnt *Controller) moderatorsHandler() echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		return c.JSON(http.StatusOK, render.ConvertSliceWithAloc(rawModerators, render.ModeratorFromDomain))
+		return c.JSON(http.StatusOK, render.ConvertSliceWithAlloc(rawModerators, render.ModeratorFromDomain))
 	}
 }
 

@@ -30,6 +30,33 @@ export function BotListWidget(props: {
         </tbody>
     </table>
 }
+export function BotSelectWidget(props: {
+    value: Array<BotModel>
+    selectCallback: (id: number, name: string) => void
+}) {
+    return <table>
+        <thead>
+            <tr>
+                <td>ID</td>
+                <td>Название</td>
+                <td>Создан</td>
+                <td>Действия</td>
+            </tr>
+        </thead>
+        <tbody>
+            {props.value.map(bot =>
+                <tr key={bot.id}>
+                    <td>{bot.id}</td>
+                    <td>{bot.name}</td>
+                    <td>{bot.create_at}</td>
+                    <td>
+                        <button onClick={() => { props.selectCallback!(bot.id, bot.name) }}>выбрать</button>
+                    </td>
+                </tr>
+            )}
+        </tbody>
+    </table>
+}
 
 export function BotEditorWidget(props: {
     value: BotModel

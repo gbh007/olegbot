@@ -15,7 +15,7 @@ export interface BotModel {
     update_at?: string
 }
 
-interface botDeleteRequest {
+interface botRequest {
     id: number
 }
 
@@ -37,14 +37,14 @@ export function useBotUpdate(): [Response<void | null>, PostAction<BotModel>] {
     return [response, fetchData]
 }
 
-export function useBotDelete(): [Response<void | null>, PostAction<botDeleteRequest>] {
-    const [response, fetchData] = useAPIPost<botDeleteRequest, void>('/api/bot/delete')
+export function useBotDelete(): [Response<void | null>, PostAction<botRequest>] {
+    const [response, fetchData] = useAPIPost<botRequest, void>('/api/bot/delete')
 
     return [response, fetchData]
 }
 
-export function useBotGet(): [Response<BotModel | null>, PostAction<botDeleteRequest>] {
-    const [response, fetchData] = useAPIPost<botDeleteRequest, BotModel>('/api/bot/get')
+export function useBotGet(): [Response<BotModel | null>, PostAction<botRequest>] {
+    const [response, fetchData] = useAPIPost<botRequest, BotModel>('/api/bot/get')
 
     return [response, fetchData]
 }

@@ -15,7 +15,7 @@ func (cnt *Controller) listBotHandler() echo.HandlerFunc {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		return c.JSON(http.StatusOK, render.ConvertSliceWithAloc(bots, render.BotFromDomain))
+		return c.JSON(http.StatusOK, render.ConvertSliceWithAlloc(bots, render.BotFromDomain))
 	}
 }
 

@@ -97,12 +97,11 @@ func (c *Controller) Serve(ctx context.Context) error {
 
 	echoRouter.StaticFS("/", static.StaticDir)
 
-	echoRouter.GET("/api/quotes", c.quotesHandler())
-
-	echoRouter.GET("/api/quote", c.quoteHandler())
-	echoRouter.DELETE("/api/quote", c.deleteQuoteHandler())
-	echoRouter.POST("/api/quote", c.updateQuoteHandler())
-	echoRouter.PUT("/api/quote", c.addQuoteHandler())
+	echoRouter.POST("/api/quote/list", c.quoteListHandler())
+	echoRouter.POST("/api/quote/get", c.quoteGetHandler())
+	echoRouter.POST("/api/quote/create", c.createQuoteHandler())
+	echoRouter.POST("/api/quote/update", c.updateQuoteHandler())
+	echoRouter.POST("/api/quote/delete", c.deleteQuoteHandler())
 
 	echoRouter.GET("/api/moderators", c.moderatorsHandler())
 	echoRouter.DELETE("/api/moderator", c.deleteModeratorHandler())

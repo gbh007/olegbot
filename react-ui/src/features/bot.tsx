@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { BotModel, useBotCreate, useBotDelete, useBotGet, useBotList, useBotUpdate } from "../apiclient/api-bot";
-import { BotEditorWidget, BotListWidget } from "../widgets/bot";
+import { BotEditorWidget, BotListWidget, BotSelectWidget } from "../widgets/bot";
 import { ErrorWidget } from "../widgets/simple-component";
 import { useParams } from "react-router-dom";
 
@@ -16,11 +16,38 @@ export function BotListScreen() {
         <ErrorWidget value={botListResponse} />
         <ErrorWidget value={botDeleteResponse} />
         {botListResponse.data ?
-            <BotListWidget value={botListResponse.data!} deleteCallback={(v: number) => {
-                doDeleteBot({ id: v }).then(() => {
-                    fetchBotList()
-                })
-            }} /> : null}
+            <BotListWidget
+                value={botListResponse.data!}
+                deleteCallback={(v: number) => {
+                    if (!confirm(`Удалить бота №${v}`)) {
+                        return;
+                    }
+
+                    doDeleteBot({ id: v }).then(() => {
+                        fetchBotList()
+                    })
+                }}
+            /> : null}
+    </div>
+}
+
+
+export function BotSelectScreen(props: {
+    selectCallback: (id: number, name: string) => void
+}) {
+    const [botListResponse, fetchBotList] = useBotList()
+
+    useEffect(() => {
+        fetchBotList()
+    }, [fetchBotList])
+
+    return <div>
+        <ErrorWidget value={botListResponse} />
+        {botListResponse.data ?
+            <BotSelectWidget
+                value={botListResponse.data!}
+                selectCallback={props.selectCallback}
+            /> : null}
     </div>
 }
 
@@ -45,14 +72,12 @@ export function BotEditorScreen() {
     useEffect(() => {
         if (botInfoResponse.data) {
             setBotInfo(botInfoResponse.data)
-            console.log("set info");
         }
     }, [botInfoResponse.data])
 
     if (id) {
         useEffect(() => {
             fetchBotInfo({ id: id! })
-            console.log("fetch");
         }, [fetchBotInfo, id])
     }
 

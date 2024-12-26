@@ -1,10 +1,12 @@
-import { PropsWithChildren } from 'react'
+import { PropsWithChildren, useContext, useState } from 'react'
 import {
   RouterProvider,
   Link,
   createHashRouter,
 } from "react-router-dom";
-import { BotEditorScreen, BotListScreen } from './features/bot';
+import { BotEditorScreen, BotListScreen, BotSelectScreen } from './features/bot';
+import { BotContext, BotContextType } from './context/bot';
+import { QuoteEditorScreen, QuoteListScreen } from './features/quote';
 
 
 const router = createHashRouter([
@@ -20,23 +22,50 @@ const router = createHashRouter([
     path: "/bot/edit/:botID",
     element: <SimpleWrapper> <BotEditorScreen /></SimpleWrapper>,
   },
+  {
+    path: "/quote/list",
+    element: <SimpleWrapper> <QuoteListScreen /></SimpleWrapper>,
+  },
+  {
+    path: "/quote/edit/:quoteID",
+    element: <SimpleWrapper> <QuoteEditorScreen /></SimpleWrapper>,
+  },
 ]);
 
 function App() {
+  const [bot, setBot] = useState<BotContextType>({
+    id: 0,
+    name: ""
+  });
+
   return (
     <>
-      <RouterProvider router={router} />
+      {bot.id > 0 ?
+        <BotContext.Provider value={bot}>
+          <RouterProvider router={router} />
+        </BotContext.Provider>
+        :
+        <BotSelectScreen selectCallback={(id: number, name: string) => {
+          setBot({
+            id: id,
+            name: name
+          })
+        }} />
+      }
     </ >
   )
 }
 
 function SimpleWrapper(props: PropsWithChildren) {
+  const bot = useContext(BotContext);
 
   return (
     <>
       <div>
-        <Link to="/">Главная</Link>
-        <Link to="/bot/list">Список ботов</Link>
+        <Link to="/">Главная </Link>
+        <Link to="/bot/list">Список ботов </Link>
+        <Link to="/quote/list">Список цитат </Link>
+        <span>Выбран бот: {bot.name}</span>
       </div>
 
       {props.children}
