@@ -11,6 +11,11 @@ import (
 
 func (cnt *Controller) ffQuoteHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
+		botID, err := strconv.ParseInt(c.FormValue("bot-id"), 10, 64)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
 		file, err := c.FormFile("quotes")
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
@@ -30,7 +35,7 @@ func (cnt *Controller) ffQuoteHandler() echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		err = cnt.useCases.AddQuotes(c.Request().Context(), cnt.botID, req)
+		err = cnt.useCases.AddQuotes(c.Request().Context(), botID, req)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -41,6 +46,11 @@ func (cnt *Controller) ffQuoteHandler() echo.HandlerFunc {
 
 func (cnt *Controller) ffMediaHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
+		botID, err := strconv.ParseInt(c.FormValue("bot-id"), 10, 64)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
 		var fileBody io.Reader
 
 		actionType := c.FormValue("type")
@@ -68,13 +78,13 @@ func (cnt *Controller) ffMediaHandler() echo.HandlerFunc {
 
 		switch actionType {
 		case "audio":
-			err = cnt.botController.SendAudio(c.Request().Context(), chatID, c.FormValue("filename"), fileBody)
+			err = cnt.botController.SendAudio(c.Request().Context(), botID, chatID, c.FormValue("filename"), fileBody)
 		case "video":
-			err = cnt.botController.SendVideo(c.Request().Context(), chatID, c.FormValue("filename"), fileBody)
+			err = cnt.botController.SendVideo(c.Request().Context(), botID, chatID, c.FormValue("filename"), fileBody)
 		case "image":
-			err = cnt.botController.SendImage(c.Request().Context(), chatID, c.FormValue("filename"), fileBody)
+			err = cnt.botController.SendImage(c.Request().Context(), botID, chatID, c.FormValue("filename"), fileBody)
 		case "text":
-			err = cnt.botController.SendText(c.Request().Context(), chatID, c.FormValue("filename"))
+			err = cnt.botController.SendText(c.Request().Context(), botID, chatID, c.FormValue("filename"))
 		default:
 			return c.String(http.StatusBadRequest, "unknown type")
 		}

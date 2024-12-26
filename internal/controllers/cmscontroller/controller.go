@@ -37,10 +37,10 @@ type useCases interface {
 }
 
 type botController interface {
-	SendAudio(ctx context.Context, chatID int64, filename string, data io.Reader) error
-	SendVideo(ctx context.Context, chatID int64, filename string, data io.Reader) error
-	SendImage(ctx context.Context, chatID int64, filename string, data io.Reader) error
-	SendText(ctx context.Context, chatID int64, text string) error
+	SendAudio(ctx context.Context, botID, chatID int64, filename string, data io.Reader) error
+	SendVideo(ctx context.Context, botID, chatID int64, filename string, data io.Reader) error
+	SendImage(ctx context.Context, botID, chatID int64, filename string, data io.Reader) error
+	SendText(ctx context.Context, botID, chatID int64, text string) error
 }
 
 type Config struct {
@@ -59,8 +59,6 @@ type Controller struct {
 	cmsPass  string
 	debug    bool
 
-	botID int64
-
 	useCases      useCases
 	botController botController
 }
@@ -73,8 +71,6 @@ func New(cfg Config, useCases useCases, botController botController) *Controller
 		cmsPass:  cfg.CMSPass,
 
 		debug: cfg.Debug,
-
-		botID: 1, // FIXME: временно прибито гвоздями
 
 		useCases:      useCases,
 		botController: botController,
