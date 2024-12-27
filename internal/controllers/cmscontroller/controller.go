@@ -101,7 +101,6 @@ func (c *Controller) Serve(ctx context.Context) error {
 	echoRouter.Use(c.newBaseAuth())
 
 	if c.staticDirPath != "" {
-		fmt.Println(c.staticDirPath)
 		echoRouter.Static("/", c.staticDirPath)
 	}
 

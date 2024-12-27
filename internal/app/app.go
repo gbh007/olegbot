@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 
 	"github.com/vrischmann/envconfig"
 )
@@ -44,12 +45,22 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: envconfig: %w", err)
 	}
 
+	logLevel := slog.LevelInfo
+	if cfg.Debug {
+		logLevel = slog.LevelDebug
+	}
+
+	a.logger = slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+		AddSource: cfg.Debug,
+		Level:     logLevel,
+	}))
+
 	repo, err := postgresql.New(ctx, cfg.Repo, 10, a.logger, cfg.Debug)
 	if err != nil {
 		return fmt.Errorf("app: init: repository: %w", err)
 	}
 
-	a.tgController = tgcontroller.New(repo, a.logger)
+	a.tgController = tgcontroller.New(repo, a.logger, cfg.Debug)
 
 	a.cmsController = cmscontroller.New(
 		cmscontroller.Config{

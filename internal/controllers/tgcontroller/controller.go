@@ -22,6 +22,7 @@ type Controller struct {
 	botsMutex sync.RWMutex
 
 	logger *slog.Logger
+	debug  bool
 
 	repo repo
 }
@@ -36,11 +37,12 @@ type repo interface {
 	GetBot(ctx context.Context, botID int64) (domain.Bot, error)
 }
 
-func New(repo repo, logger *slog.Logger) *Controller {
+func New(repo repo, logger *slog.Logger, debug bool) *Controller {
 	c := &Controller{
 		bots:   make(map[int64]*telegram.Controller),
 		repo:   repo,
 		logger: logger,
+		debug:  debug,
 	}
 
 	return c
@@ -73,7 +75,18 @@ func (c *Controller) Serve(ctx context.Context) error {
 
 func (c *Controller) startBot(ctx context.Context, bot domain.Bot) {
 	// FIXME: это очень плохо, надо отрефакторить (включая юзкейсы), чтобы перейти на интерфейсы
-	bc := telegram.New(bot.Token, tgusecases.New(c.repo, bot.ID))
+	bc := telegram.New(
+		bot.Token,
+		bot.ID,
+		tgusecases.New(
+			c.repo,
+			bot.ID,
+			c.logger,
+			c.debug,
+		),
+		c.logger,
+		c.debug,
+	)
 
 	c.botsMutex.Lock()
 	_, exists := c.bots[bot.ID]

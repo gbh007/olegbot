@@ -2,6 +2,7 @@ package tgusecases
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -13,7 +14,10 @@ func (u *UseCases) AccessMiddleware() bot.Middleware {
 			if update.Message != nil {
 				botInfo, err := u.repo.GetBot(ctx, u.botID)
 				if err != nil {
-					// TODO: логировать ошибку
+					if u.debug {
+						u.logger.DebugContext(ctx, "access middleware check", slog.String("error", err.Error()))
+					}
+
 					return
 				}
 
