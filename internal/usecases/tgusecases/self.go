@@ -38,7 +38,7 @@ func (u *UseCases) SelfHandle(ctx context.Context, b *bot.Bot, update *models.Up
 		return false, nil
 	}
 
-	quote, err := u.RandomQuote(ctx)
+	quote, err := u.randomQuote(ctx)
 	if err != nil {
 		return true, fmt.Errorf("self handle: %w", err)
 	}

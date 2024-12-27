@@ -3,7 +3,6 @@ package tgusecases
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -14,12 +13,16 @@ func (u *UseCases) WhoHandle(ctx context.Context, b *bot.Bot, update *models.Upd
 		return false, nil
 	}
 
-	ok := strings.Index(update.Message.Text, "/who") == 0
+	ok, err := u.commandStrictCheck(ctx, "/who", update.Message.Text)
+	if err != nil {
+		return true, fmt.Errorf("who handle: strict check: %w", err)
+	}
+
 	if !ok {
 		return false, nil
 	}
 
-	_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
 		Text:   fmt.Sprintf("user id: %d chat id: %d", update.Message.From.ID, update.Message.Chat.ID),
 		ReplyParameters: &models.ReplyParameters{

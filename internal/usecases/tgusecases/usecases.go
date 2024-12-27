@@ -3,6 +3,7 @@ package tgusecases
 import (
 	"app/internal/domain"
 	"context"
+	"strings"
 )
 
 type repository interface {
@@ -23,4 +24,19 @@ func New(repo repository, botID int64) *UseCases {
 		repo:  repo,
 		botID: botID,
 	}
+}
+
+func (u *UseCases) commandStrictCheck(ctx context.Context, cmd, msg string) (bool, error) {
+	bot, err := u.repo.GetBot(ctx, u.botID)
+	if err != nil {
+		return false, err
+	}
+
+	if bot.Tag == "" {
+		return strings.HasPrefix(msg, cmd), nil
+	}
+
+	ok := strings.HasPrefix(msg, cmd+"@"+bot.Tag)
+
+	return ok, nil
 }

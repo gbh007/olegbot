@@ -3,23 +3,26 @@ package tgusecases
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
 
-func (c *UseCases) CommentHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error) {
+func (u *UseCases) CommentHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error) {
 	if update.Message == nil || update.Message.ReplyToMessage == nil {
 		return false, nil
 	}
 
-	ok := strings.Index(update.Message.Text, "/comment") == 0
+	ok, err := u.commandStrictCheck(ctx, "/comment", update.Message.Text)
+	if err != nil {
+		return true, fmt.Errorf("comment handle: strict check: %w", err)
+	}
+
 	if !ok {
 		return false, nil
 	}
 
-	quote, err := c.RandomQuote(ctx)
+	quote, err := u.randomQuote(ctx)
 	if err != nil {
 		return true, fmt.Errorf("comment handle: %w", err)
 	}

@@ -13,7 +13,7 @@ import (
 func (r *Repository) IsModerator(ctx context.Context, botID int64, userID int64) (bool, error) {
 	raw := 0
 
-	err := r.db.GetContext(ctx, &raw, `SELECT 1 FROM moderatos WHERE bot_id = $1 AND user_id = $2 LIMIT 1;`, botID, userID)
+	err := r.db.GetContext(ctx, &raw, `SELECT 1 FROM moderators WHERE bot_id = $1 AND user_id = $2 LIMIT 1;`, botID, userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}

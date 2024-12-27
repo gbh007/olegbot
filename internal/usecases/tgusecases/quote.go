@@ -12,7 +12,7 @@ import (
 	"github.com/go-telegram/bot/models"
 )
 
-func (u *UseCases) RandomQuote(ctx context.Context) (string, error) {
+func (u *UseCases) randomQuote(ctx context.Context) (string, error) {
 	quotes, err := u.repo.Quotes(ctx, u.botID)
 	if err != nil {
 		return "", fmt.Errorf("use case: random quote: %w", err)
@@ -25,7 +25,7 @@ func (u *UseCases) RandomQuote(ctx context.Context) (string, error) {
 	return quotes[rand.Intn(len(quotes))].Text, nil
 }
 
-func (u *UseCases) AddQuote(ctx context.Context, text string, userID, chatID int64) error {
+func (u *UseCases) addQuote(ctx context.Context, text string, userID, chatID int64) error {
 	ok, err := u.repo.IsModerator(ctx, u.botID, userID)
 	if err != nil {
 		return fmt.Errorf("use case: add quote: %w", err)
@@ -57,12 +57,16 @@ func (u *UseCases) QuoteHandle(ctx context.Context, b *bot.Bot, update *models.U
 		return false, nil
 	}
 
-	ok := strings.Index(update.Message.Text, "/quote") == 0
+	ok, err := u.commandStrictCheck(ctx, "/quote", update.Message.Text)
+	if err != nil {
+		return true, fmt.Errorf("quote handle: strict check: %w", err)
+	}
+
 	if !ok {
 		return false, nil
 	}
 
-	quote, err := u.RandomQuote(ctx)
+	quote, err := u.randomQuote(ctx)
 	if err != nil {
 		return true, fmt.Errorf("quote handle: %w", err)
 	}
@@ -98,7 +102,11 @@ func (u *UseCases) AddQuoteHandle(ctx context.Context, b *bot.Bot, update *model
 		return false, nil
 	}
 
-	ok := strings.Index(update.Message.Text, "/add_quote") == 0
+	ok, err := u.commandStrictCheck(ctx, "/add_quote", update.Message.Text)
+	if err != nil {
+		return true, fmt.Errorf("add quote handle: strict check: %w", err)
+	}
+
 	if !ok {
 		return false, nil
 	}
@@ -122,7 +130,7 @@ func (u *UseCases) AddQuoteHandle(ctx context.Context, b *bot.Bot, update *model
 		replyTo = update.Message.ID
 	}
 
-	err := u.AddQuote(ctx, text, update.Message.From.ID, update.Message.Chat.ID)
+	err = u.addQuote(ctx, text, update.Message.From.ID, update.Message.Chat.ID)
 	switch {
 	case errors.Is(err, domain.QuoteAlreadyExistsError):
 		_, sendErr := b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
