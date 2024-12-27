@@ -3,6 +3,7 @@ package app
 import (
 	"app/internal/controllers/cmscontroller"
 	"app/internal/controllers/tgcontroller"
+	"app/internal/dataproviders/cache"
 	"app/internal/dataproviders/postgresql"
 	"app/internal/usecases/cmsusecases"
 	"context"
@@ -60,7 +61,11 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: repository: %w", err)
 	}
 
-	a.tgController = tgcontroller.New(repo, a.logger, cfg.Debug)
+	a.tgController = tgcontroller.New(
+		cache.New(repo),
+		a.logger,
+		cfg.Debug,
+	)
 
 	a.cmsController = cmscontroller.New(
 		cmscontroller.Config{
@@ -70,7 +75,7 @@ func (a *App) Init(ctx context.Context) error {
 			Debug:         cfg.Debug,
 			StaticDirPath: cfg.CMS.StaticDirPath,
 		},
-		cmsusecases.New(repo),
+		cmsusecases.New(cache.New(repo)),
 		a.tgController, // FIXME: это конечно дич, но пока так проще.
 	)
 
