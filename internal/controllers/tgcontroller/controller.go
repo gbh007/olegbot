@@ -104,7 +104,7 @@ func (c *Controller) StartBot(ctx context.Context, botID int64) error {
 		return err
 	}
 
-	if bot.Enabled {
+	if !bot.Enabled {
 		return botNotEnabledErr
 	}
 
@@ -133,7 +133,7 @@ func (c *Controller) StopBot(ctx context.Context, botID int64) error {
 func (c *Controller) RunningBots(ctx context.Context) ([]int64, error) {
 	c.botsMutex.RLock()
 
-	ids := make([]int64, len(c.bots))
+	ids := make([]int64, 0, len(c.bots))
 	for id := range c.bots {
 		ids = append(ids, id)
 	}

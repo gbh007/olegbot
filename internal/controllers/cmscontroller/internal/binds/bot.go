@@ -68,3 +68,27 @@ func (req GetBotRequest) Validate() error {
 
 	return nil
 }
+
+type StartBotRequest struct {
+	ID int64 `json:"id"`
+}
+
+func (req StartBotRequest) Validate() error {
+	if req.ID < 1 {
+		return fmt.Errorf("%w: incorrect id", ErrInvalidData)
+	}
+
+	return nil
+}
+
+type StopBotRequest struct {
+	ID int64 `json:"id"`
+}
+
+func (req StopBotRequest) Validate() error {
+	if req.ID < 1 {
+		return fmt.Errorf("%w: incorrect id", ErrInvalidData)
+	}
+
+	return nil
+}

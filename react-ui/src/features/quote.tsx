@@ -102,7 +102,7 @@ function QuoteListWidget(props: {
     value: Array<QuoteModel>
     deleteCallback: (v: number) => void
 }) {
-    return <table>
+    return <table style={{ borderSpacing: "10px" }}>
         <thead>
             <tr>
                 <td>ID <Link to={"/quote/edit/new"}>новый</Link></td>
@@ -122,7 +122,7 @@ function QuoteListWidget(props: {
                     <td>{quote.creator_id}</td>
                     <td>{quote.created_in_chat_id}</td>
                     <td>
-                        <Link to={"/quote/edit/" + quote.id}>редактировать</Link>
+                        <Link to={"/quote/edit/" + quote.id}>редактировать</Link><br />
                         <button onClick={() => { props.deleteCallback(quote.id) }}>удалить</button>
                     </td>
                 </tr>

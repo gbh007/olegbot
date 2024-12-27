@@ -20,12 +20,11 @@ export function ModeratorsScreen() {
         <ErrorWidget value={createModeratorResponse} />
         <ErrorWidget value={deleteModeratorResponse} />
         {moderatorListResponse.data ?
-            <table>
+            <table style={{ borderSpacing: "10px" }}>
                 <thead>
                     <tr>
                         <td>
-                            ID
-                            <button onClick={() => {
+                            ID <button onClick={() => {
                                 const userID = parseInt(prompt("Введите ID пользователя") || "0");
                                 if (!userID) {
                                     return;

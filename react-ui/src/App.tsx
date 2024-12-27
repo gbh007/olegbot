@@ -9,6 +9,7 @@ import { BotContext, BotContextType } from './context/bot';
 import { QuoteEditorScreen, QuoteListScreen } from './features/quote';
 import { ModeratorsScreen } from './features/moderator';
 import { MediaUploadScreen, QuotesUploadScreen } from './features/ff';
+import { BotControllerScreen } from './features/controller';
 
 
 const router = createHashRouter([
@@ -44,6 +45,10 @@ const router = createHashRouter([
     path: "/ff/media",
     element: <SimpleWrapper> <MediaUploadScreen /></SimpleWrapper>,
   },
+  {
+    path: "/bot/controller",
+    element: <SimpleWrapper> <BotControllerScreen /></SimpleWrapper>,
+  },
 ]);
 
 function App() {
@@ -75,13 +80,14 @@ function SimpleWrapper(props: PropsWithChildren) {
 
   return (
     <>
-      <div>
-        <Link to="/">Главная </Link>
-        <Link to="/bot/list">Список ботов </Link>
-        <Link to="/quote/list">Список цитат </Link>
-        <Link to="/moderator/list">Список модераторов </Link>
-        <Link to="/ff/quotes">Загрузка цитат </Link>
-        <Link to="/ff/media">Отправка медиа </Link>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <Link to="/">Главная</Link>
+        <Link to="/bot/list">Список ботов</Link>
+        <Link to="/bot/controller">Контроллер ботов</Link>
+        <Link to="/quote/list">Список цитат</Link>
+        <Link to="/moderator/list">Список модераторов</Link>
+        <Link to="/ff/quotes">Загрузка цитат</Link>
+        <Link to="/ff/media">Отправка медиа</Link>
         <span>Выбран бот: {bot.name}</span>
       </div>
 

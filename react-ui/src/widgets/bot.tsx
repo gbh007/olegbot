@@ -6,7 +6,7 @@ export function BotListWidget(props: {
     value: Array<BotModel>
     deleteCallback: (v: number) => void
 }) {
-    return <table>
+    return <table style={{ borderSpacing: "10px" }}>
         <thead>
             <tr>
                 <td>ID <Link to={"/bot/edit/new"}>новый</Link></td>
@@ -22,7 +22,7 @@ export function BotListWidget(props: {
                     <td>{bot.name}</td>
                     <td>{bot.create_at}</td>
                     <td>
-                        <Link to={"/bot/edit/" + bot.id}>редактировать</Link>
+                        <Link to={"/bot/edit/" + bot.id}>редактировать</Link><br />
                         <button onClick={() => { props.deleteCallback(bot.id) }}>удалить</button>
                     </td>
                 </tr>

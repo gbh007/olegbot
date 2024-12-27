@@ -110,3 +110,60 @@ func (cnt *Controller) getBotHandler() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, render.BotFromDomain(raw))
 	}
 }
+
+func (cnt *Controller) startBotHandler() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := binds.StartBotRequest{}
+
+		err := c.Bind(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		err = c.Validate(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		err = cnt.botController.StartBot(c.Request().Context(), req.ID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.NoContent(http.StatusNoContent)
+	}
+}
+
+func (cnt *Controller) stopBotHandler() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := binds.StopBotRequest{}
+
+		err := c.Bind(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		err = c.Validate(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		err = cnt.botController.StopBot(c.Request().Context(), req.ID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.NoContent(http.StatusNoContent)
+	}
+}
+
+func (cnt *Controller) getRunningBotsHandler() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		raw, err := cnt.botController.RunningBots(c.Request().Context())
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, raw)
+	}
+}

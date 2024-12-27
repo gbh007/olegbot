@@ -48,3 +48,21 @@ export function useBotGet(): [Response<BotModel | null>, PostAction<botRequest>]
 
     return [response, fetchData]
 }
+
+export function useBotStart(): [Response<void | null>, PostAction<botRequest>] {
+    const [response, fetchData] = useAPIPost<botRequest, void>('/api/bot/start')
+
+    return [response, fetchData]
+}
+
+export function useBotStop(): [Response<void | null>, PostAction<botRequest>] {
+    const [response, fetchData] = useAPIPost<botRequest, void>('/api/bot/stop')
+
+    return [response, fetchData]
+}
+
+export function useBotRunningList(): [Response<Array<number> | null>, PostAction<void>] {
+    const [response, fetchData] = useAPIGet<Array<number>>('/api/bot/running/list')
+
+    return [response, fetchData]
+}

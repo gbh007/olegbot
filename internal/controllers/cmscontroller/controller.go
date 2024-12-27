@@ -125,6 +125,9 @@ func (c *Controller) Serve(ctx context.Context) error {
 	echoRouter.POST("/api/bot/create", c.createBotHandler())
 	echoRouter.POST("/api/bot/update", c.updateBotHandler())
 	echoRouter.POST("/api/bot/delete", c.deleteBotHandler())
+	echoRouter.POST("/api/bot/start", c.startBotHandler())
+	echoRouter.POST("/api/bot/stop", c.stopBotHandler())
+	echoRouter.GET("/api/bot/running/list", c.getRunningBotsHandler())
 
 	go func() { // Стоит переписать, пока временная затычка
 		<-ctx.Done()
