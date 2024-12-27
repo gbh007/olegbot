@@ -3,64 +3,52 @@ package tgcontroller
 import (
 	"context"
 	"io"
-
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
 )
 
-func (c *Controller) SendAudio(ctx context.Context, chatID int64, filename string, data io.Reader) error {
-	_, err := c.b.SendAudio(ctx, &bot.SendAudioParams{
-		ChatID: chatID,
-		Audio: &models.InputFileUpload{
-			Filename: filename,
-			Data:     data,
-		},
-	})
-	if err != nil {
-		return err
+func (c *Controller) SendAudio(ctx context.Context, botID, chatID int64, filename string, data io.Reader) error {
+	c.botsMutex.RLock()
+	defer c.botsMutex.RUnlock()
+
+	bot, ok := c.bots[botID]
+	if !ok {
+		return botNotRunningErr
 	}
 
-	return nil
+	return bot.SendAudio(ctx, chatID, filename, data)
 }
 
-func (c *Controller) SendVideo(ctx context.Context, chatID int64, filename string, data io.Reader) error {
-	_, err := c.b.SendVideo(ctx, &bot.SendVideoParams{
-		ChatID: chatID,
-		Video: &models.InputFileUpload{
-			Filename: filename,
-			Data:     data,
-		},
-	})
-	if err != nil {
-		return err
+func (c *Controller) SendVideo(ctx context.Context, botID, chatID int64, filename string, data io.Reader) error {
+	c.botsMutex.RLock()
+	defer c.botsMutex.RUnlock()
+
+	bot, ok := c.bots[botID]
+	if !ok {
+		return botNotRunningErr
 	}
 
-	return nil
+	return bot.SendVideo(ctx, chatID, filename, data)
 }
 
-func (c *Controller) SendImage(ctx context.Context, chatID int64, filename string, data io.Reader) error {
-	_, err := c.b.SendPhoto(ctx, &bot.SendPhotoParams{
-		ChatID: chatID,
-		Photo: &models.InputFileUpload{
-			Filename: filename,
-			Data:     data,
-		},
-	})
-	if err != nil {
-		return err
+func (c *Controller) SendImage(ctx context.Context, botID, chatID int64, filename string, data io.Reader) error {
+	c.botsMutex.RLock()
+	defer c.botsMutex.RUnlock()
+
+	bot, ok := c.bots[botID]
+	if !ok {
+		return botNotRunningErr
 	}
 
-	return nil
+	return bot.SendImage(ctx, chatID, filename, data)
 }
 
-func (c *Controller) SendText(ctx context.Context, chatID int64, text string) error {
-	_, err := c.b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: chatID,
-		Text:   text,
-	})
-	if err != nil {
-		return err
+func (c *Controller) SendText(ctx context.Context, botID, chatID int64, text string) error {
+	c.botsMutex.RLock()
+	defer c.botsMutex.RUnlock()
+
+	bot, ok := c.bots[botID]
+	if !ok {
+		return botNotRunningErr
 	}
 
-	return nil
+	return bot.SendText(ctx, chatID, text)
 }

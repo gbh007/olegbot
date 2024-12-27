@@ -7,6 +7,7 @@ RUN mkdir /app
 
 
 COPY ./_build/bot /app/main
+COPY ./react-ui/dist /app/static
 
 RUN chmod +x /app/main
 

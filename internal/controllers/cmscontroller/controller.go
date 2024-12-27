@@ -2,7 +2,6 @@ package cmscontroller
 
 import (
 	"app/internal/controllers/cmscontroller/internal/binds"
-	"app/internal/controllers/cmscontroller/internal/static"
 	"app/internal/domain"
 	"context"
 	"errors"
@@ -16,25 +15,35 @@ import (
 )
 
 type useCases interface {
-	Quotes(ctx context.Context) ([]domain.Quote, error)
+	Quotes(ctx context.Context, botID int64) ([]domain.Quote, error)
 
 	Quote(ctx context.Context, id int64) (domain.Quote, error)
 	DeleteQuote(ctx context.Context, id int64) error
 	UpdateQuoteText(ctx context.Context, id int64, text string) error
-	AddQuote(ctx context.Context, text string) error
+	AddQuote(ctx context.Context, botID int64, text string) error
 
-	Moderators(ctx context.Context) ([]domain.Moderator, error)
-	AddModerator(ctx context.Context, userID int64, description string) error
-	DeleteModerator(ctx context.Context, userID int64) error
+	Moderators(ctx context.Context, botID int64) ([]domain.Moderator, error)
+	AddModerator(ctx context.Context, botID, userID int64, description string) error
+	DeleteModerator(ctx context.Context, botID, userID int64) error
 
-	AddQuotes(ctx context.Context, quotes []string) error
+	AddQuotes(ctx context.Context, botID int64, quotes []string) error
+
+	CreateBot(ctx context.Context, bot domain.Bot) error
+	UpdateBot(ctx context.Context, bot domain.Bot) error
+	DeleteBot(ctx context.Context, id int64) error
+	GetBots(ctx context.Context) ([]domain.Bot, error)
+	GetBot(ctx context.Context, botID int64) (domain.Bot, error)
 }
 
 type botController interface {
-	SendAudio(ctx context.Context, chatID int64, filename string, data io.Reader) error
-	SendVideo(ctx context.Context, chatID int64, filename string, data io.Reader) error
-	SendImage(ctx context.Context, chatID int64, filename string, data io.Reader) error
-	SendText(ctx context.Context, chatID int64, text string) error
+	SendAudio(ctx context.Context, botID, chatID int64, filename string, data io.Reader) error
+	SendVideo(ctx context.Context, botID, chatID int64, filename string, data io.Reader) error
+	SendImage(ctx context.Context, botID, chatID int64, filename string, data io.Reader) error
+	SendText(ctx context.Context, botID, chatID int64, text string) error
+
+	StartBot(ctx context.Context, botID int64) error
+	StopBot(ctx context.Context, botID int64) error
+	RunningBots(ctx context.Context) ([]int64, error)
 }
 
 type Config struct {
@@ -43,11 +52,15 @@ type Config struct {
 	CMSLogin string
 	CMSPass  string
 
+	StaticDirPath string
+
 	Debug bool
 }
 
 type Controller struct {
 	httpAddr string
+
+	staticDirPath string
 
 	cmsLogin string
 	cmsPass  string
@@ -60,6 +73,8 @@ type Controller struct {
 func New(cfg Config, useCases useCases, botController botController) *Controller {
 	return &Controller{
 		httpAddr: cfg.HTTPAddr,
+
+		staticDirPath: cfg.StaticDirPath,
 
 		cmsLogin: cfg.CMSLogin,
 		cmsPass:  cfg.CMSPass,
@@ -85,23 +100,33 @@ func (c *Controller) Serve(ctx context.Context) error {
 	echoRouter.Use(middleware.Recover())
 	echoRouter.Use(c.newBaseAuth())
 
-	echoRouter.StaticFS("/", static.StaticDir)
+	if c.staticDirPath != "" {
+		echoRouter.Static("/", c.staticDirPath)
+	}
 
-	echoRouter.GET("/api/quotes", c.quotesHandler())
+	echoRouter.POST("/api/quote/list", c.quoteListHandler())
+	echoRouter.POST("/api/quote/get", c.quoteGetHandler())
+	echoRouter.POST("/api/quote/create", c.createQuoteHandler())
+	echoRouter.POST("/api/quote/update", c.updateQuoteHandler())
+	echoRouter.POST("/api/quote/delete", c.deleteQuoteHandler())
 
-	echoRouter.GET("/api/quote", c.quoteHandler())
-	echoRouter.DELETE("/api/quote", c.deleteQuoteHandler())
-	echoRouter.POST("/api/quote", c.updateQuoteHandler())
-	echoRouter.PUT("/api/quote", c.addQuoteHandler())
-
-	echoRouter.GET("/api/moderators", c.moderatorsHandler())
-	echoRouter.DELETE("/api/moderator", c.deleteModeratorHandler())
-	echoRouter.PUT("/api/moderator", c.addModeratorHandler())
+	echoRouter.POST("/api/moderator/list", c.moderatorsHandler())
+	echoRouter.POST("/api/moderator/create", c.addModeratorHandler())
+	echoRouter.POST("/api/moderator/delete", c.deleteModeratorHandler())
 
 	echoRouter.POST("/api/ff/quotes", c.ffQuoteHandler())
 	echoRouter.POST("/api/ff/media", c.ffMediaHandler())
 
 	echoRouter.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+
+	echoRouter.GET("/api/bot/list", c.listBotHandler())
+	echoRouter.POST("/api/bot/get", c.getBotHandler())
+	echoRouter.POST("/api/bot/create", c.createBotHandler())
+	echoRouter.POST("/api/bot/update", c.updateBotHandler())
+	echoRouter.POST("/api/bot/delete", c.deleteBotHandler())
+	echoRouter.POST("/api/bot/start", c.startBotHandler())
+	echoRouter.POST("/api/bot/stop", c.stopBotHandler())
+	echoRouter.GET("/api/bot/running/list", c.getRunningBotsHandler())
 
 	go func() { // Стоит переписать, пока временная затычка
 		<-ctx.Done()

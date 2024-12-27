@@ -4,30 +4,48 @@ import (
 	"app/internal/controllers/cmscontroller/internal/binds"
 	"app/internal/controllers/cmscontroller/internal/render"
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
 
-func (cnt *Controller) quotesHandler() echo.HandlerFunc {
+func (cnt *Controller) quoteListHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		rawQuotes, err := cnt.useCases.Quotes(c.Request().Context())
-		if err != nil {
-			return c.String(http.StatusInternalServerError, err.Error())
-		}
+		req := binds.QuoteListRequest{}
 
-		return c.JSON(http.StatusOK, render.ConvertSliceWithAloc(rawQuotes, render.QuoteFromDomain))
-	}
-}
-
-func (cnt *Controller) quoteHandler() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		id, err := strconv.ParseInt(c.QueryParam("id"), 10, 64)
+		err := c.Bind(&req)
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		rawQuote, err := cnt.useCases.Quote(c.Request().Context(), id)
+		err = c.Validate(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		rawQuotes, err := cnt.useCases.Quotes(c.Request().Context(), req.BotID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, render.ConvertSliceWithAlloc(rawQuotes, render.QuoteFromDomain))
+	}
+}
+
+func (cnt *Controller) quoteGetHandler() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		req := binds.GetQuoteRequest{}
+
+		err := c.Bind(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		err = c.Validate(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		rawQuote, err := cnt.useCases.Quote(c.Request().Context(), req.ID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -38,12 +56,19 @@ func (cnt *Controller) quoteHandler() echo.HandlerFunc {
 
 func (cnt *Controller) deleteQuoteHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, err := strconv.ParseInt(c.QueryParam("id"), 10, 64)
+		req := binds.DeleteQuoteRequest{}
+
+		err := c.Bind(&req)
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		err = cnt.useCases.DeleteQuote(c.Request().Context(), id)
+		err = c.Validate(&req)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		err = cnt.useCases.DeleteQuote(c.Request().Context(), req.ID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -75,7 +100,7 @@ func (cnt *Controller) updateQuoteHandler() echo.HandlerFunc {
 	}
 }
 
-func (cnt *Controller) addQuoteHandler() echo.HandlerFunc {
+func (cnt *Controller) createQuoteHandler() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		req := binds.AddQuoteRequest{}
 
@@ -89,7 +114,7 @@ func (cnt *Controller) addQuoteHandler() echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		err = cnt.useCases.AddQuote(c.Request().Context(), req.Text)
+		err = cnt.useCases.AddQuote(c.Request().Context(), req.BotID, req.Text)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

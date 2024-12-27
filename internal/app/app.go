@@ -3,35 +3,26 @@ package app
 import (
 	"app/internal/controllers/cmscontroller"
 	"app/internal/controllers/tgcontroller"
+	"app/internal/dataproviders/cache"
 	"app/internal/dataproviders/postgresql"
 	"app/internal/usecases/cmsusecases"
-	"app/internal/usecases/tgusecases"
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 
 	"github.com/vrischmann/envconfig"
 )
 
 type appConfig struct {
-	Token string
-	Bot   struct {
-		Name         string   `envconfig:"optional"`
-		Tag          string   `envconfig:"optional"`
-		Tags         []string `envconfig:"optional"`
-		AllowedChats []int64  `envconfig:"optional"`
-	} `envconfig:"optional"`
 	Repo string
 	Addr string `envconfig:"optional"`
 	CMS  struct {
-		Login    string `envconfig:"optional"`
-		Password string `envconfig:"optional"`
+		StaticDirPath string `envconfig:"optional,"`
+		Login         string `envconfig:"optional"`
+		Password      string `envconfig:"optional"`
 	} `envconfig:"optional"`
 	Debug bool `envconfig:"optional"`
-	Emoji struct {
-		List   []string `envconfig:"optional"`
-		Chance float32  `envconfig:"optional"`
-	} `envconfig:"optional"`
 }
 
 type App struct {
@@ -48,7 +39,6 @@ func New(logger *slog.Logger) *App {
 }
 
 func (a *App) Init(ctx context.Context) error {
-
 	cfg := new(appConfig)
 
 	err := envconfig.Init(cfg)
@@ -56,38 +46,36 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: envconfig: %w", err)
 	}
 
-	repo := postgresql.New()
+	logLevel := slog.LevelInfo
+	if cfg.Debug {
+		logLevel = slog.LevelDebug
+	}
 
-	err = repo.Load(ctx, cfg.Repo)
+	a.logger = slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+		AddSource: cfg.Debug,
+		Level:     logLevel,
+	}))
+
+	repo, err := postgresql.New(ctx, cfg.Repo, 10, a.logger, cfg.Debug)
 	if err != nil {
 		return fmt.Errorf("app: init: repository: %w", err)
 	}
 
-	fmt.Println(cfg.Bot.AllowedChats)
-
 	a.tgController = tgcontroller.New(
-		tgcontroller.Config{
-			Token:        cfg.Token,
-			BotName:      cfg.Bot.Name,
-			BotTag:       cfg.Bot.Tag,
-			Tags:         cfg.Bot.Tags,
-			AllowedChats: cfg.Bot.AllowedChats,
-			UseCases: tgusecases.New(
-				repo,
-				cfg.Emoji.List,
-				cfg.Emoji.Chance,
-			),
-		},
+		cache.New(repo),
+		a.logger,
+		cfg.Debug,
 	)
 
 	a.cmsController = cmscontroller.New(
 		cmscontroller.Config{
-			HTTPAddr: cfg.Addr,
-			CMSLogin: cfg.CMS.Login,
-			CMSPass:  cfg.CMS.Password,
-			Debug:    cfg.Debug,
+			HTTPAddr:      cfg.Addr,
+			CMSLogin:      cfg.CMS.Login,
+			CMSPass:       cfg.CMS.Password,
+			Debug:         cfg.Debug,
+			StaticDirPath: cfg.CMS.StaticDirPath,
 		},
-		cmsusecases.New(repo),
+		cmsusecases.New(cache.New(repo)),
 		a.tgController, // FIXME: это конечно дич, но пока так проще.
 	)
 

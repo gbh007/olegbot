@@ -7,6 +7,7 @@ import (
 
 type Quote struct {
 	ID              int64     `json:"id"`
+	BotID           int64     `json:"bot_id"`
 	Text            string    `json:"text"`
 	CreatorID       int64     `json:"creator_id,omitempty"`
 	CreatedInChatID int64     `json:"created_in_chat_id,omitempty"`

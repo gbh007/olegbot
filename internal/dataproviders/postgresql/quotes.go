@@ -6,10 +6,10 @@ import (
 	"fmt"
 )
 
-func (r *Repository) allQuotes(ctx context.Context) ([]*quoteModel, error) {
+func (r *Repository) allQuotes(ctx context.Context, botID int64) ([]*quoteModel, error) {
 	raw := make([]*quoteModel, 0)
 
-	err := r.db.SelectContext(ctx, &raw, `SELECT * FROM "quotes";`)
+	err := r.db.SelectContext(ctx, &raw, `SELECT * FROM "quotes" WHERE bot_id = $1;`, botID)
 	if err != nil {
 		return nil, fmt.Errorf("all quotes: %w", err)
 	}
@@ -17,8 +17,8 @@ func (r *Repository) allQuotes(ctx context.Context) ([]*quoteModel, error) {
 	return raw, nil
 }
 
-func (r *Repository) Quotes(ctx context.Context) ([]domain.Quote, error) {
-	rawQuotes, err := r.allQuotes(ctx)
+func (r *Repository) Quotes(ctx context.Context, botID int64) ([]domain.Quote, error) {
+	rawQuotes, err := r.allQuotes(ctx, botID)
 	if err != nil {
 		return nil, fmt.Errorf("repository: quotes: %w", err)
 	}

@@ -4,24 +4,31 @@ import (
 	"app/internal/domain"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+
+	"github.com/Masterminds/squirrel"
 )
 
-func (r *Repository) IsModerator(_ context.Context, userID int64) (bool, error) {
-	moderators := r.moderators.Load()
-	if moderators == nil {
+func (r *Repository) IsModerator(ctx context.Context, botID int64, userID int64) (bool, error) {
+	raw := 0
+
+	err := r.db.GetContext(ctx, &raw, `SELECT 1 FROM moderators WHERE bot_id = $1 AND user_id = $2 LIMIT 1;`, botID, userID)
+	if errors.Is(err, sql.ErrNoRows) {
 		return false, nil
 	}
 
-	_, ok := (*moderators)[userID]
+	if err != nil {
+		return false, fmt.Errorf("select moderator: %w", err)
+	}
 
-	return ok, nil
+	return true, nil
 }
 
-func (r *Repository) allModerators(ctx context.Context) ([]*moderatorModel, error) {
+func (r *Repository) allModerators(ctx context.Context, botID int64) ([]*moderatorModel, error) {
 	raw := make([]*moderatorModel, 0)
 
-	err := r.db.SelectContext(ctx, &raw, `SELECT * FROM moderators;`)
+	err := r.db.SelectContext(ctx, &raw, `SELECT * FROM moderators WHERE bot_id = $1;`, botID)
 	if err != nil {
 		return nil, fmt.Errorf("all moderators: %w", err)
 	}
@@ -29,8 +36,8 @@ func (r *Repository) allModerators(ctx context.Context) ([]*moderatorModel, erro
 	return raw, nil
 }
 
-func (r *Repository) Moderators(ctx context.Context) ([]domain.Moderator, error) {
-	rawModerators, err := r.allModerators(ctx)
+func (r *Repository) Moderators(ctx context.Context, botID int64) ([]domain.Moderator, error) {
+	rawModerators, err := r.allModerators(ctx, botID)
 	if err != nil {
 		return nil, fmt.Errorf("repository: moderators: %w", err)
 	}
@@ -43,21 +50,25 @@ func (r *Repository) Moderators(ctx context.Context) ([]domain.Moderator, error)
 	return moderators, nil
 }
 
-func (r *Repository) AddModerator(ctx context.Context, userID int64, description string) error {
-	_, err := r.db.ExecContext(
-		ctx,
-		`INSERT INTO moderators (user_id, "description") VALUES ($1, $2);`,
-		userID,
-		sql.NullString{
-			String: description,
-			Valid:  description != "",
-		},
-	)
+func (r *Repository) AddModerator(ctx context.Context, botID, userID int64, description string) error {
+	builder := squirrel.Insert("moderators").
+		PlaceholderFormat(squirrel.Dollar).
+		SetMap(
+			map[string]interface{}{
+				"user_id":     userID,
+				"bot_id":      botID,
+				"description": StringToDB(description),
+			},
+		)
+
+	query, args, err := builder.ToSql()
 	if err != nil {
-		return fmt.Errorf("repository: add moderator: %w", err)
+		return fmt.Errorf("repository: build query: %w", err)
 	}
 
-	err = r.reloadModeratorCache(ctx)
+	r.squirrelDebugLog(ctx, query, args)
+
+	_, err = r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("repository: add moderator: %w", err)
 	}
@@ -65,17 +76,13 @@ func (r *Repository) AddModerator(ctx context.Context, userID int64, description
 	return nil
 }
 
-func (r *Repository) DeleteModerator(ctx context.Context, userID int64) error {
+func (r *Repository) DeleteModerator(ctx context.Context, botID, userID int64) error {
 	_, err := r.db.ExecContext(
 		ctx,
-		`DELETE FROM moderators WHERE user_id = $1;`,
+		`DELETE FROM moderators WHERE bot_id = $1 AND user_id = $2;`,
+		botID,
 		userID,
 	)
-	if err != nil {
-		return fmt.Errorf("repository: delete moderator: %w", err)
-	}
-
-	err = r.reloadModeratorCache(ctx)
 	if err != nil {
 		return fmt.Errorf("repository: delete moderator: %w", err)
 	}
