@@ -1,82 +1,144 @@
 package tgcontroller
 
 import (
+	"app/internal/dataproviders/telegram"
+	"app/internal/domain"
+	"app/internal/usecases/tgusecases"
 	"context"
+	"errors"
 	"fmt"
-
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
+	"log/slog"
+	"sync"
 )
 
-type Config struct {
-	Token    string
-	UseCases useCases
-}
-
-type handler func(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
-
-type useCases interface {
-	EmojiHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
-	WhoHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
-	QuoteHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
-	AddQuoteHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
-	CommentHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
-	SelfHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
-	AccessMiddleware() bot.Middleware
-}
+var (
+	botNotRunningErr = errors.New("bot is not running")
+	botNotEnabledErr = errors.New("bot is not enabled")
+)
 
 type Controller struct {
-	tgToken string
+	// FIXME: это очень плохо, надо отрефакторить (включая юзкейсы), чтобы перейти на интерфейсы
+	bots      map[int64]*telegram.Controller
+	botsMutex sync.RWMutex
 
-	useCases useCases
+	logger *slog.Logger
 
-	handlers []handler
-
-	b *bot.Bot
+	repo repo
 }
 
-func New(cfg Config) *Controller {
-	c := &Controller{
-		tgToken:  cfg.Token,
-		useCases: cfg.UseCases,
-	}
+type repo interface {
+	GetBots(ctx context.Context) ([]domain.Bot, error)
 
-	c.handlers = append(
-		c.handlers,
-		c.handleWrapper(c.useCases.CommentHandle, "comment"),
-		c.handleWrapper(c.useCases.QuoteHandle, "quote"),
-		c.handleWrapper(c.useCases.AddQuoteHandle, "add_quote"),
-		c.handleWrapper(c.useCases.WhoHandle, "who"),
-		c.handleWrapper(c.useCases.SelfHandle, "self"),
-		c.handleWrapper(c.useCases.EmojiHandle, "emoji"),
-	)
+	Quotes(ctx context.Context, botID int64) ([]domain.Quote, error)
+	AddQuote(ctx context.Context, botID int64, text string, userID, chatID int64) error
+	IsModerator(ctx context.Context, botID int64, userID int64) (bool, error)
+	QuoteExists(ctx context.Context, botID int64, text string) (bool, error)
+	GetBot(ctx context.Context, botID int64) (domain.Bot, error)
+}
+
+func New(repo repo, logger *slog.Logger) *Controller {
+	c := &Controller{
+		bots:   make(map[int64]*telegram.Controller),
+		repo:   repo,
+		logger: logger,
+	}
 
 	return c
 }
 
 func (c *Controller) Serve(ctx context.Context) error {
-	middlewares := make([]bot.Middleware, 0, 2)
-	middlewares = append(middlewares, c.counterMiddleware())
-	middlewares = append(middlewares, c.useCases.AccessMiddleware())
-
-	opts := []bot.Option{
-		bot.WithMiddlewares(middlewares...),
-		bot.WithDefaultHandler(c.handler),
-	}
-
-	b, err := bot.New(c.tgToken, opts...)
+	bots, err := c.repo.GetBots(ctx)
 	if err != nil {
-		return fmt.Errorf("serve error: %w", err)
+		return fmt.Errorf("get bots: %w", err)
 	}
 
-	err = c.setBotCommands(ctx, b)
-	if err != nil {
-		return fmt.Errorf("serve error: %w", err)
+	for _, bot := range bots {
+		if bot.Enabled {
+			c.startBot(ctx, bot)
+		}
 	}
 
-	c.b = b
+	<-ctx.Done()
 
-	b.Start(ctx)
+	c.botsMutex.Lock()
+
+	for _, bot := range c.bots {
+		bot.Stop(context.TODO())
+	}
+
+	c.botsMutex.Unlock()
 
 	return nil
+}
+
+func (c *Controller) startBot(ctx context.Context, bot domain.Bot) {
+	// FIXME: это очень плохо, надо отрефакторить (включая юзкейсы), чтобы перейти на интерфейсы
+	bc := telegram.New(bot.Token, tgusecases.New(c.repo, bot.ID))
+
+	c.botsMutex.Lock()
+	_, exists := c.bots[bot.ID]
+	if !exists {
+		c.bots[bot.ID] = bc
+	}
+	c.botsMutex.Unlock()
+
+	if exists {
+		return
+	}
+
+	go func() {
+		err := bc.Serve(ctx)
+		if err != nil {
+			c.logger.ErrorContext(ctx, err.Error())
+		}
+
+		c.botsMutex.Lock()
+		delete(c.bots, bot.ID)
+		c.botsMutex.Unlock()
+	}()
+}
+
+func (c *Controller) StartBot(ctx context.Context, botID int64) error {
+	bot, err := c.repo.GetBot(ctx, botID)
+	if err != nil {
+		return err
+	}
+
+	if bot.Enabled {
+		return botNotEnabledErr
+	}
+
+	c.startBot(ctx, bot)
+
+	return nil
+}
+
+func (c *Controller) StopBot(ctx context.Context, botID int64) error {
+	c.botsMutex.Lock()
+
+	bot, ok := c.bots[botID]
+	if ok {
+		bot.Stop(ctx)
+	}
+
+	c.botsMutex.Unlock()
+
+	if !ok {
+		return botNotRunningErr
+	}
+
+	return nil
+}
+
+func (c *Controller) RunningBots(ctx context.Context) ([]int64, error) {
+	c.botsMutex.RLock()
+
+	ids := make([]int64, len(c.bots))
+	for id := range c.bots {
+		ids = append(ids, id)
+	}
+
+	c.botsMutex.RUnlock()
+
+	return ids, nil
 }

@@ -40,6 +40,10 @@ type botController interface {
 	SendVideo(ctx context.Context, botID, chatID int64, filename string, data io.Reader) error
 	SendImage(ctx context.Context, botID, chatID int64, filename string, data io.Reader) error
 	SendText(ctx context.Context, botID, chatID int64, text string) error
+
+	StartBot(ctx context.Context, botID int64) error
+	StopBot(ctx context.Context, botID int64) error
+	RunningBots(ctx context.Context) ([]int64, error)
 }
 
 type Config struct {

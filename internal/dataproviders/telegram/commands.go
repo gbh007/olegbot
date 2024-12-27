@@ -1,4 +1,4 @@
-package tgcontroller
+package telegram
 
 import (
 	"context"
