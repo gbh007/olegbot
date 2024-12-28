@@ -3,6 +3,7 @@ package cache
 import (
 	"app/internal/domain"
 	"context"
+	"log/slog"
 )
 
 type dataSource interface {
@@ -29,15 +30,17 @@ type dataSource interface {
 
 type Cache struct {
 	origin dataSource
+	logger *slog.Logger
 
 	quotes *wrapper[int64, []domain.Quote]
 	bots   *wrapper[int64, domain.Bot]
 }
 
-func New(origin dataSource) *Cache {
+func New(origin dataSource, logger *slog.Logger) *Cache {
 	return &Cache{
 		origin: origin,
-		quotes: newWrapper[int64, []domain.Quote](),
-		bots:   newWrapper[int64, domain.Bot](),
+		logger: logger,
+		quotes: newWrapper[int64, []domain.Quote]("quotes", logger),
+		bots:   newWrapper[int64, domain.Bot]("bots", logger),
 	}
 }

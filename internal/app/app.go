@@ -61,8 +61,10 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: repository: %w", err)
 	}
 
+	cachedRepo := cache.New(repo, a.logger)
+
 	a.tgController = tgcontroller.New(
-		cache.New(repo),
+		cachedRepo,
 		a.logger,
 		cfg.Debug,
 	)
@@ -75,7 +77,7 @@ func (a *App) Init(ctx context.Context) error {
 			Debug:         cfg.Debug,
 			StaticDirPath: cfg.CMS.StaticDirPath,
 		},
-		cmsusecases.New(cache.New(repo)),
+		cmsusecases.New(cachedRepo),
 		a.tgController, // FIXME: это конечно дич, но пока так проще.
 	)
 
