@@ -39,7 +39,7 @@ func (u *UseCases) SelfHandle(ctx context.Context, b *bot.Bot, update *models.Up
 		return false, nil
 	}
 
-	if rand.Float32() > botInfo.StickerChance {
+	if rand.Float32() < botInfo.StickerChance {
 		fileID, err := u.randomSticker(ctx)
 		if err != nil {
 			return true, fmt.Errorf("self handle: sticker: %w", err)
@@ -62,7 +62,7 @@ func (u *UseCases) SelfHandle(ctx context.Context, b *bot.Bot, update *models.Up
 		return true, nil
 	}
 
-	if rand.Float32() > botInfo.GifChance {
+	if rand.Float32() < botInfo.GifChance {
 		fileID, err := u.randomGif(ctx)
 		if err != nil {
 			return true, fmt.Errorf("self handle: gif: %w", err)
