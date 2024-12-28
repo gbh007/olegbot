@@ -21,6 +21,12 @@ type useCases interface {
 	CommentHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
 	SelfHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
 	AccessMiddleware() bot.Middleware
+
+	StickerHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
+	AddStickerHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
+	GifHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
+	AddGifHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
+	EmojiCommandHandle(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
 }
 
 type Controller struct {
@@ -57,8 +63,13 @@ func New(
 	c.handlers = append(
 		c.handlers,
 		c.handleWrapper(c.useCases.CommentHandle, "comment"),
+		c.handleWrapper(c.useCases.StickerHandle, "sticker"),
+		c.handleWrapper(c.useCases.GifHandle, "gif"),
+		c.handleWrapper(c.useCases.EmojiCommandHandle, "emoji_command"),
 		c.handleWrapper(c.useCases.QuoteHandle, "quote"),
 		c.handleWrapper(c.useCases.AddQuoteHandle, "add_quote"),
+		c.handleWrapper(c.useCases.AddStickerHandle, "add_sticker"),
+		c.handleWrapper(c.useCases.AddGifHandle, "add_gif"),
 		c.handleWrapper(c.useCases.WhoHandle, "who"),
 		c.handleWrapper(c.useCases.SelfHandle, "self"),
 		c.handleWrapper(c.useCases.EmojiHandle, "emoji"),

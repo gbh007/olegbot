@@ -12,34 +12,38 @@ import (
 var _ pgx.RowScanner = (*botModel)(nil)
 
 type botModel struct {
-	ID           int64                    `db:"id"`
-	Name         string                   `db:"name"`
-	BotTag       string                   `db:"bot_tag"`
-	Token        string                   `db:"token"`
-	Enabled      bool                     `db:"enabled"`
-	Description  sql.NullString           `db:"description"`
-	EmojiList    pgtype.FlatArray[string] `db:"emoji_list"`
-	EmojiChance  sql.NullFloat64          `db:"emoji_chance"`
-	Tags         pgtype.FlatArray[string] `db:"tags"`
-	AllowedChats pgtype.FlatArray[int64]  `db:"allowed_chats"`
-	CreateAt     time.Time                `db:"create_at"`
-	UpdateAt     sql.NullTime             `db:"update_at"`
+	ID            int64                    `db:"id"`
+	Name          string                   `db:"name"`
+	BotTag        string                   `db:"bot_tag"`
+	Token         string                   `db:"token"`
+	Enabled       bool                     `db:"enabled"`
+	Description   sql.NullString           `db:"description"`
+	EmojiList     pgtype.FlatArray[string] `db:"emoji_list"`
+	EmojiChance   sql.NullFloat64          `db:"emoji_chance"`
+	Tags          pgtype.FlatArray[string] `db:"tags"`
+	AllowedChats  pgtype.FlatArray[int64]  `db:"allowed_chats"`
+	StickerChance sql.NullFloat64          `db:"sticker_chance"`
+	GifChance     sql.NullFloat64          `db:"gif_chance"`
+	CreateAt      time.Time                `db:"create_at"`
+	UpdateAt      sql.NullTime             `db:"update_at"`
 }
 
 func (v botModel) toDomain() domain.Bot {
 	return domain.Bot{
-		ID:           v.ID,
-		Enabled:      v.Enabled,
-		Name:         v.Name,
-		Tag:          v.BotTag,
-		Description:  v.Description.String,
-		Token:        v.Token,
-		EmojiList:    v.EmojiList,
-		EmojiChance:  float32(v.EmojiChance.Float64),
-		Tags:         v.Tags,
-		AllowedChats: v.AllowedChats,
-		CreateAt:     v.CreateAt,
-		UpdateAt:     v.UpdateAt.Time,
+		ID:            v.ID,
+		Enabled:       v.Enabled,
+		Name:          v.Name,
+		Tag:           v.BotTag,
+		Description:   v.Description.String,
+		Token:         v.Token,
+		EmojiList:     v.EmojiList,
+		EmojiChance:   float32(v.EmojiChance.Float64),
+		Tags:          v.Tags,
+		AllowedChats:  v.AllowedChats,
+		StickerChance: float32(v.StickerChance.Float64),
+		GifChance:     float32(v.GifChance.Float64),
+		CreateAt:      v.CreateAt,
+		UpdateAt:      v.UpdateAt.Time,
 	}
 }
 
@@ -57,6 +61,14 @@ func (v *botModel) fromDomain(raw domain.Bot) {
 	}
 	v.Tags = ArrayToDB(raw.Tags)
 	v.AllowedChats = ArrayToDB(raw.AllowedChats)
+	v.StickerChance = sql.NullFloat64{
+		Float64: float64(raw.StickerChance),
+		Valid:   raw.StickerChance > 0,
+	}
+	v.GifChance = sql.NullFloat64{
+		Float64: float64(raw.GifChance),
+		Valid:   raw.GifChance > 0,
+	}
 	v.CreateAt = raw.CreateAt
 	v.UpdateAt = TimeToDB(raw.UpdateAt)
 }
@@ -73,6 +85,8 @@ func (v botModel) columns() []string {
 		"emoji_chance",
 		"tags",
 		"allowed_chats",
+		"sticker_chance",
+		"gif_chance",
 		"create_at",
 		"update_at",
 	}
@@ -90,6 +104,8 @@ func (v *botModel) ScanRow(rows pgx.Rows) error {
 		&v.EmojiChance,
 		&v.Tags,
 		&v.AllowedChats,
+		&v.StickerChance,
+		&v.GifChance,
 		&v.CreateAt,
 		&v.UpdateAt,
 	)
@@ -159,4 +175,46 @@ func ArrayToDB[T any](raw []T) pgtype.FlatArray[T] {
 	}
 
 	return raw
+}
+
+type stickerModel struct {
+	ID       int64         `db:"id"`
+	BotID    int64         `db:"bot_id"`
+	FileID   string        `db:"file_id"`
+	CreateAt time.Time     `db:"create_at"`
+	UpdateAt sql.NullTime  `db:"update_at"`
+	UserID   sql.NullInt64 `db:"user_id"`
+	ChatID   sql.NullInt64 `db:"chat_id"`
+}
+
+func (v stickerModel) toDomain() domain.Sticker {
+	return domain.Sticker{
+		ID:              v.ID,
+		BotID:           v.BotID,
+		FileID:          v.FileID,
+		CreatorID:       v.UserID.Int64,
+		CreatedInChatID: v.ChatID.Int64,
+		CreateAt:        v.CreateAt,
+	}
+}
+
+type gifModel struct {
+	ID       int64         `db:"id"`
+	BotID    int64         `db:"bot_id"`
+	FileID   string        `db:"file_id"`
+	CreateAt time.Time     `db:"create_at"`
+	UpdateAt sql.NullTime  `db:"update_at"`
+	UserID   sql.NullInt64 `db:"user_id"`
+	ChatID   sql.NullInt64 `db:"chat_id"`
+}
+
+func (v gifModel) toDomain() domain.Gif {
+	return domain.Gif{
+		ID:              v.ID,
+		BotID:           v.BotID,
+		FileID:          v.FileID,
+		CreatorID:       v.UserID.Int64,
+		CreatedInChatID: v.ChatID.Int64,
+		CreateAt:        v.CreateAt,
+	}
 }

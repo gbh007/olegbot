@@ -94,3 +94,51 @@ func (c *Cache) DeleteBot(ctx context.Context, id int64) error {
 func (c *Cache) GetBots(ctx context.Context) ([]domain.Bot, error) {
 	return c.origin.GetBots(ctx)
 }
+
+func (c *Cache) AddSticker(ctx context.Context, sticker domain.Sticker) error {
+	c.stickers.Del(sticker.BotID)
+
+	return c.origin.AddSticker(ctx, sticker)
+}
+
+func (c *Cache) StickerExists(ctx context.Context, botID int64, fileID string) (bool, error) {
+	return c.origin.StickerExists(ctx, botID, fileID)
+}
+
+func (c *Cache) Stickers(ctx context.Context, botID int64) ([]domain.Sticker, error) {
+	stickers, ok := c.stickers.Get(botID)
+	if ok {
+		return stickers, nil
+	}
+
+	stickers, err := c.origin.Stickers(ctx, botID)
+	if err == nil {
+		c.stickers.Set(botID, stickers)
+	}
+
+	return stickers, err
+}
+
+func (c *Cache) AddGif(ctx context.Context, gif domain.Gif) error {
+	c.gifs.Del(gif.BotID)
+
+	return c.origin.AddGif(ctx, gif)
+}
+
+func (c *Cache) GifExists(ctx context.Context, botID int64, fileID string) (bool, error) {
+	return c.origin.GifExists(ctx, botID, fileID)
+}
+
+func (c *Cache) Gifs(ctx context.Context, botID int64) ([]domain.Gif, error) {
+	gifs, ok := c.gifs.Get(botID)
+	if ok {
+		return gifs, nil
+	}
+
+	gifs, err := c.origin.Gifs(ctx, botID)
+	if err == nil {
+		c.gifs.Set(botID, gifs)
+	}
+
+	return gifs, err
+}

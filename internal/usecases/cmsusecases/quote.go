@@ -25,7 +25,7 @@ func (u *UseCases) AddQuote(ctx context.Context, botID int64, text string) error
 	}
 
 	if exists {
-		return fmt.Errorf("use case: add quote: %w", domain.QuoteAlreadyExistsError)
+		return fmt.Errorf("use case: add quote: %w", domain.AlreadyExistsError)
 	}
 
 	err = u.repo.AddQuote(ctx, botID, text, 0, 0)

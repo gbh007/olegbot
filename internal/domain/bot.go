@@ -20,12 +20,23 @@ type Bot struct {
 	Token        string
 	AllowedChats []int64
 
+	GifChance     float32
+	StickerChance float32
+
 	CreateAt time.Time
 	UpdateAt time.Time
 }
 
-func (r Bot) RandomEmoji() (string, bool) {
+func (r Bot) RandomEmojiWithChance() (string, bool) {
 	if rand.Float32() > r.EmojiChance || len(r.EmojiList) == 0 {
+		return "", false
+	}
+
+	return (r.EmojiList)[rand.Intn(len(r.EmojiList))], true
+}
+
+func (r Bot) RandomEmoji() (string, bool) {
+	if len(r.EmojiList) == 0 {
 		return "", false
 	}
 

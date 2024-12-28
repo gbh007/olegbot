@@ -35,6 +35,14 @@ type repo interface {
 	IsModerator(ctx context.Context, botID int64, userID int64) (bool, error)
 	QuoteExists(ctx context.Context, botID int64, text string) (bool, error)
 	GetBot(ctx context.Context, botID int64) (domain.Bot, error)
+
+	AddSticker(ctx context.Context, sticker domain.Sticker) error
+	StickerExists(ctx context.Context, botID int64, fileID string) (bool, error)
+	Stickers(ctx context.Context, botID int64) ([]domain.Sticker, error)
+
+	AddGif(ctx context.Context, gif domain.Gif) error
+	GifExists(ctx context.Context, botID int64, fileID string) (bool, error)
+	Gifs(ctx context.Context, botID int64) ([]domain.Gif, error)
 }
 
 func New(repo repo, logger *slog.Logger, debug bool) *Controller {

@@ -41,7 +41,7 @@ func (u *UseCases) addQuote(ctx context.Context, text string, userID, chatID int
 	}
 
 	if exists {
-		return fmt.Errorf("use case: add quote: %w", domain.QuoteAlreadyExistsError)
+		return fmt.Errorf("use case: add quote: %w", domain.AlreadyExistsError)
 	}
 
 	err = u.repo.AddQuote(ctx, u.botID, text, userID, chatID)
@@ -132,7 +132,7 @@ func (u *UseCases) AddQuoteHandle(ctx context.Context, b *bot.Bot, update *model
 
 	err = u.addQuote(ctx, text, update.Message.From.ID, update.Message.Chat.ID)
 	switch {
-	case errors.Is(err, domain.QuoteAlreadyExistsError):
+	case errors.Is(err, domain.AlreadyExistsError):
 		_, sendErr := b.SetMessageReaction(ctx, &bot.SetMessageReactionParams{
 			ChatID:    update.Message.Chat.ID,
 			MessageID: replyTo,

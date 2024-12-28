@@ -131,6 +131,26 @@ export function BotEditorWidget(props: {
                 props.onChange({ ...props.value, allowed_chats: e.map(e => e ? parseInt(e) : 0) })
             }}
         />
+        <span>Шанс стикера: </span><input
+            type="number"
+            step={0.001}
+            max={1}
+            min={0}
+            value={props.value.sticker_chance ?? 0}
+            onChange={(e) => {
+                props.onChange({ ...props.value, sticker_chance: e.target.valueAsNumber })
+            }}
+        /><br />
+        <span>Шанс гифки: </span><input
+            type="number"
+            step={0.001}
+            max={1}
+            min={0}
+            value={props.value.gif_chance ?? 0}
+            onChange={(e) => {
+                props.onChange({ ...props.value, gif_chance: e.target.valueAsNumber })
+            }}
+        /><br />
         <button onClick={props.onSave}>Сохранить</button>
     </div>
 }

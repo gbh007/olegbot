@@ -11,6 +11,8 @@ export interface BotModel {
     description?: string
     token: string
     allowed_chats?: Array<number>
+    sticker_chance?: number
+    gif_chance?: number
     create_at: string
     update_at?: string
 }
