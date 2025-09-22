@@ -1,0 +1,7 @@
+[generator]
+clean = true
+format = 'mermaid'
+only_inner = true
+out = 'docs/arch'
+prefer_inner_names = true
+scheme_file = 'plantuml'

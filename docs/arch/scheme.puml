@@ -1,0 +1,22 @@
+@startuml "goarchlint"
+skinparam componentStyle rectangle
+[/cmd/bot] --> [/internal/app]
+[/internal/app] --> [/internal/controllers/cmscontroller]
+[/internal/app] --> [/internal/controllers/tgcontroller]
+[/internal/app] --> [/internal/dataproviders/cache]
+[/internal/app] --> [/internal/dataproviders/postgresql]
+[/internal/app] --> [/internal/usecases/cmsusecases]
+[/internal/controllers/cmscontroller] --> [/internal/controllers/cmscontroller/internal/binds]
+[/internal/controllers/cmscontroller] --> [/internal/controllers/cmscontroller/internal/render]
+[/internal/controllers/cmscontroller] --> [/internal/domain]
+[/internal/controllers/cmscontroller/internal/binds] --> [/internal/controllers/cmscontroller/internal/render]
+[/internal/controllers/cmscontroller/internal/render] --> [/internal/domain]
+[/internal/controllers/tgcontroller] --> [/internal/dataproviders/telegram]
+[/internal/controllers/tgcontroller] --> [/internal/domain]
+[/internal/controllers/tgcontroller] --> [/internal/usecases/tgusecases]
+[/internal/dataproviders/cache] --> [/internal/domain]
+[/internal/dataproviders/postgresql] --> [/internal/domain]
+[/internal/dataproviders/telegram] --> [/internal/common]
+[/internal/usecases/cmsusecases] --> [/internal/domain]
+[/internal/usecases/tgusecases] --> [/internal/domain]
+@enduml
