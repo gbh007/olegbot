@@ -23,6 +23,9 @@ type Bot struct {
 	GifChance     float32
 	StickerChance float32
 
+	LLMChance       float32
+	LLMAllowedChats []int64
+
 	CreateAt time.Time
 	UpdateAt time.Time
 }

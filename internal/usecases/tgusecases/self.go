@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"slices"
 	"strings"
 
 	"github.com/go-telegram/bot"
@@ -85,7 +86,17 @@ func (u *UseCases) SelfHandle(ctx context.Context, b *bot.Bot, update *models.Up
 		return true, nil
 	}
 
-	quote, err := u.randomQuote(ctx)
+	var useLLM bool
+
+	if rand.Float32() < botInfo.LLMChance {
+		useLLM = true
+	}
+
+	if useLLM {
+		useLLM = slices.Contains(botInfo.LLMAllowedChats, update.Message.Chat.ID)
+	}
+
+	quote, err := u.randomQuote(ctx, &botInfo, []string{messageText + captionText}, useLLM)
 	if err != nil {
 		return true, fmt.Errorf("self handle: %w", err)
 	}

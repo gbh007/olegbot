@@ -1,9 +1,10 @@
 package postgresql
 
 import (
-	"app/internal/domain"
 	"database/sql"
 	"time"
+
+	"app/internal/domain"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -12,38 +13,42 @@ import (
 var _ pgx.RowScanner = (*botModel)(nil)
 
 type botModel struct {
-	ID            int64                    `db:"id"`
-	Name          string                   `db:"name"`
-	BotTag        string                   `db:"bot_tag"`
-	Token         string                   `db:"token"`
-	Enabled       bool                     `db:"enabled"`
-	Description   sql.NullString           `db:"description"`
-	EmojiList     pgtype.FlatArray[string] `db:"emoji_list"`
-	EmojiChance   sql.NullFloat64          `db:"emoji_chance"`
-	Tags          pgtype.FlatArray[string] `db:"tags"`
-	AllowedChats  pgtype.FlatArray[int64]  `db:"allowed_chats"`
-	StickerChance sql.NullFloat64          `db:"sticker_chance"`
-	GifChance     sql.NullFloat64          `db:"gif_chance"`
-	CreateAt      time.Time                `db:"create_at"`
-	UpdateAt      sql.NullTime             `db:"update_at"`
+	ID              int64                    `db:"id"`
+	Name            string                   `db:"name"`
+	BotTag          string                   `db:"bot_tag"`
+	Token           string                   `db:"token"`
+	Enabled         bool                     `db:"enabled"`
+	Description     sql.NullString           `db:"description"`
+	EmojiList       pgtype.FlatArray[string] `db:"emoji_list"`
+	EmojiChance     sql.NullFloat64          `db:"emoji_chance"`
+	Tags            pgtype.FlatArray[string] `db:"tags"`
+	AllowedChats    pgtype.FlatArray[int64]  `db:"allowed_chats"`
+	StickerChance   sql.NullFloat64          `db:"sticker_chance"`
+	GifChance       sql.NullFloat64          `db:"gif_chance"`
+	LLMChance       sql.NullFloat64          `db:"llm_chance"`
+	LLMAllowedChats pgtype.FlatArray[int64]  `db:"llm_allowed_chats"`
+	CreateAt        time.Time                `db:"create_at"`
+	UpdateAt        sql.NullTime             `db:"update_at"`
 }
 
 func (v botModel) toDomain() domain.Bot {
 	return domain.Bot{
-		ID:            v.ID,
-		Enabled:       v.Enabled,
-		Name:          v.Name,
-		Tag:           v.BotTag,
-		Description:   v.Description.String,
-		Token:         v.Token,
-		EmojiList:     v.EmojiList,
-		EmojiChance:   float32(v.EmojiChance.Float64),
-		Tags:          v.Tags,
-		AllowedChats:  v.AllowedChats,
-		StickerChance: float32(v.StickerChance.Float64),
-		GifChance:     float32(v.GifChance.Float64),
-		CreateAt:      v.CreateAt,
-		UpdateAt:      v.UpdateAt.Time,
+		ID:              v.ID,
+		Enabled:         v.Enabled,
+		Name:            v.Name,
+		Tag:             v.BotTag,
+		Description:     v.Description.String,
+		Token:           v.Token,
+		EmojiList:       v.EmojiList,
+		EmojiChance:     float32(v.EmojiChance.Float64),
+		Tags:            v.Tags,
+		AllowedChats:    v.AllowedChats,
+		StickerChance:   float32(v.StickerChance.Float64),
+		GifChance:       float32(v.GifChance.Float64),
+		LLMChance:       float32(v.LLMChance.Float64),
+		LLMAllowedChats: v.LLMAllowedChats,
+		CreateAt:        v.CreateAt,
+		UpdateAt:        v.UpdateAt.Time,
 	}
 }
 
@@ -69,6 +74,11 @@ func (v *botModel) fromDomain(raw domain.Bot) {
 		Float64: float64(raw.GifChance),
 		Valid:   raw.GifChance > 0,
 	}
+	v.LLMChance = sql.NullFloat64{
+		Float64: float64(raw.LLMChance),
+		Valid:   raw.LLMChance > 0,
+	}
+	v.LLMAllowedChats = ArrayToDB(raw.LLMAllowedChats)
 	v.CreateAt = raw.CreateAt
 	v.UpdateAt = TimeToDB(raw.UpdateAt)
 }
@@ -87,6 +97,8 @@ func (v botModel) columns() []string {
 		"allowed_chats",
 		"sticker_chance",
 		"gif_chance",
+		"llm_chance",
+		"llm_allowed_chats",
 		"create_at",
 		"update_at",
 	}
@@ -106,6 +118,8 @@ func (v *botModel) ScanRow(rows pgx.Rows) error {
 		&v.AllowedChats,
 		&v.StickerChance,
 		&v.GifChance,
+		&v.LLMChance,
+		&v.LLMAllowedChats,
 		&v.CreateAt,
 		&v.UpdateAt,
 	)

@@ -1,9 +1,10 @@
 package postgresql
 
 import (
-	"app/internal/domain"
 	"context"
 	"fmt"
+
+	"app/internal/domain"
 
 	"github.com/Masterminds/squirrel"
 )
@@ -39,18 +40,20 @@ func (r *Repository) CreateBot(ctx context.Context, bot domain.Bot) error {
 	builder := squirrel.Insert("bots").
 		PlaceholderFormat(squirrel.Dollar).
 		SetMap(map[string]interface{}{
-			"name":           raw.Name,
-			"bot_tag":        raw.BotTag,
-			"token":          raw.Token,
-			"enabled":        raw.Enabled,
-			"description":    raw.Description,
-			"emoji_list":     raw.EmojiList,
-			"emoji_chance":   raw.EmojiChance,
-			"tags":           raw.Tags,
-			"allowed_chats":  raw.AllowedChats,
-			"sticker_chance": raw.StickerChance,
-			"gif_chance":     raw.GifChance,
-			"create_at":      raw.CreateAt,
+			"name":              raw.Name,
+			"bot_tag":           raw.BotTag,
+			"token":             raw.Token,
+			"enabled":           raw.Enabled,
+			"description":       raw.Description,
+			"emoji_list":        raw.EmojiList,
+			"emoji_chance":      raw.EmojiChance,
+			"tags":              raw.Tags,
+			"allowed_chats":     raw.AllowedChats,
+			"sticker_chance":    raw.StickerChance,
+			"gif_chance":        raw.GifChance,
+			"llm_chance":        raw.LLMChance,
+			"llm_allowed_chats": raw.LLMAllowedChats,
+			"create_at":         raw.CreateAt,
 		})
 
 	query, args, err := builder.ToSql()
@@ -75,18 +78,20 @@ func (r *Repository) UpdateBot(ctx context.Context, bot domain.Bot) error {
 	builder := squirrel.Update("bots").
 		PlaceholderFormat(squirrel.Dollar).
 		SetMap(map[string]interface{}{
-			"name":           raw.Name,
-			"bot_tag":        raw.BotTag,
-			"token":          raw.Token,
-			"enabled":        raw.Enabled,
-			"description":    raw.Description,
-			"emoji_list":     raw.EmojiList,
-			"emoji_chance":   raw.EmojiChance,
-			"tags":           raw.Tags,
-			"allowed_chats":  raw.AllowedChats,
-			"sticker_chance": raw.StickerChance,
-			"gif_chance":     raw.GifChance,
-			"update_at":      raw.UpdateAt,
+			"name":              raw.Name,
+			"bot_tag":           raw.BotTag,
+			"token":             raw.Token,
+			"enabled":           raw.Enabled,
+			"description":       raw.Description,
+			"emoji_list":        raw.EmojiList,
+			"emoji_chance":      raw.EmojiChance,
+			"tags":              raw.Tags,
+			"allowed_chats":     raw.AllowedChats,
+			"sticker_chance":    raw.StickerChance,
+			"gif_chance":        raw.GifChance,
+			"llm_chance":        raw.LLMChance,
+			"llm_allowed_chats": raw.LLMAllowedChats,
+			"update_at":         raw.UpdateAt,
 		}).
 		Where(squirrel.Eq{
 			"id": raw.ID,

@@ -1,29 +1,16 @@
 package tgusecases
 
 import (
-	"app/internal/domain"
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
 	"strings"
+
+	"app/internal/domain"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
-
-func (u *UseCases) randomQuote(ctx context.Context) (string, error) {
-	quotes, err := u.repo.Quotes(ctx, u.botID)
-	if err != nil {
-		return "", fmt.Errorf("use case: random quote: %w", err)
-	}
-
-	if len(quotes) == 0 {
-		return "", fmt.Errorf("use case: random quote: no quotes")
-	}
-
-	return quotes[rand.Intn(len(quotes))].Text, nil
-}
 
 func (u *UseCases) addQuote(ctx context.Context, text string, userID, chatID int64) error {
 	ok, err := u.repo.IsModerator(ctx, u.botID, userID)
@@ -66,7 +53,7 @@ func (u *UseCases) QuoteHandle(ctx context.Context, b *bot.Bot, update *models.U
 		return false, nil
 	}
 
-	quote, err := u.randomQuote(ctx)
+	quote, err := u.randomQuote(ctx, nil, []string{update.Message.Text}, false)
 	if err != nil {
 		return true, fmt.Errorf("quote handle: %w", err)
 	}

@@ -22,7 +22,7 @@ func (u *UseCases) CommentHandle(ctx context.Context, b *bot.Bot, update *models
 		return false, nil
 	}
 
-	quote, err := u.randomQuote(ctx)
+	quote, err := u.randomQuote(ctx, nil, []string{update.Message.Text}, false)
 	if err != nil {
 		return true, fmt.Errorf("comment handle: %w", err)
 	}

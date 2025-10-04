@@ -1,31 +1,21 @@
 package tgcontroller
 
 import (
-	"app/internal/dataproviders/telegram"
-	"app/internal/domain"
-	"app/internal/usecases/tgusecases"
 	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
+
+	"app/internal/dataproviders/telegram"
+	"app/internal/domain"
+	"app/internal/usecases/tgusecases"
 )
 
 var (
 	botNotRunningErr = errors.New("bot is not running")
 	botNotEnabledErr = errors.New("bot is not enabled")
 )
-
-type Controller struct {
-	// FIXME: это очень плохо, надо отрефакторить (включая юзкейсы), чтобы перейти на интерфейсы
-	bots      map[int64]*telegram.Controller
-	botsMutex sync.RWMutex
-
-	logger *slog.Logger
-	debug  bool
-
-	repo repo
-}
 
 type repo interface {
 	GetBots(ctx context.Context) ([]domain.Bot, error)
@@ -45,10 +35,27 @@ type repo interface {
 	Gifs(ctx context.Context, botID int64) ([]domain.Gif, error)
 }
 
-func New(repo repo, logger *slog.Logger, debug bool) *Controller {
+type Llm interface {
+	GetQuote(ctx context.Context, names, quotes, messages []string) (string, error)
+}
+
+type Controller struct {
+	// FIXME: это очень плохо, надо отрефакторить (включая юзкейсы), чтобы перейти на интерфейсы
+	bots      map[int64]*telegram.Controller
+	botsMutex sync.RWMutex
+
+	logger *slog.Logger
+	debug  bool
+
+	repo repo
+	llm  Llm
+}
+
+func New(repo repo, llm Llm, logger *slog.Logger, debug bool) *Controller {
 	c := &Controller{
 		bots:   make(map[int64]*telegram.Controller),
 		repo:   repo,
+		llm:    llm,
 		logger: logger,
 		debug:  debug,
 	}
@@ -88,6 +95,7 @@ func (c *Controller) startBot(ctx context.Context, bot domain.Bot) {
 		bot.ID,
 		tgusecases.New(
 			c.repo,
+			c.llm,
 			bot.ID,
 			c.logger,
 			c.debug,

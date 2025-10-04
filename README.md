@@ -14,6 +14,8 @@
 | `CMS_PASSWORD`        | Пароль для CMS                     | `password`                                                        |
 | `CMS_STATIC_DIR_PATH` | Путь до статических файлов для CMS | `/app/static`                                                     |
 | `DEBUG`               | Режим отладки                      | `true`                                                            |
+| `LLM_ADDR`            | Адрес Ollama                       | `http://localhost:11434`                                          |
+| `LLM_MODEL`           | LLM модель                         | `qwen3:0.6b`                                                      |
 
 ## Метрики
 

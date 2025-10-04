@@ -1,10 +1,11 @@
 package tgusecases
 
 import (
-	"app/internal/domain"
 	"context"
 	"log/slog"
 	"strings"
+
+	"app/internal/domain"
 )
 
 type repository interface {
@@ -23,8 +24,13 @@ type repository interface {
 	Gifs(ctx context.Context, botID int64) ([]domain.Gif, error)
 }
 
+type llm interface {
+	GetQuote(ctx context.Context, names, quotes, messages []string) (string, error)
+}
+
 type UseCases struct {
 	repo  repository
+	llm   llm
 	botID int64
 
 	// FIXME: отрефакторить и убрать отсюда
@@ -34,12 +40,14 @@ type UseCases struct {
 
 func New(
 	repo repository,
+	llm llm,
 	botID int64,
 	logger *slog.Logger,
 	debug bool,
 ) *UseCases {
 	return &UseCases{
 		repo:   repo,
+		llm:    llm,
 		botID:  botID,
 		logger: logger,
 		debug:  debug,

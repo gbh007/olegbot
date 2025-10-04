@@ -1,23 +1,27 @@
 package app
 
 import (
-	"app/internal/controllers/cmscontroller"
-	"app/internal/controllers/tgcontroller"
-	"app/internal/dataproviders/cache"
-	"app/internal/dataproviders/postgresql"
-	"app/internal/usecases/cmsusecases"
 	"context"
 	"fmt"
 	"log/slog"
 	"os"
 
+	"app/internal/controllers/cmscontroller"
+	"app/internal/controllers/tgcontroller"
+	"app/internal/dataproviders/cache"
+	"app/internal/dataproviders/llm"
+	"app/internal/dataproviders/postgresql"
+	"app/internal/usecases/cmsusecases"
+
 	"github.com/vrischmann/envconfig"
 )
 
 type appConfig struct {
-	Repo string
-	Addr string `envconfig:"optional"`
-	CMS  struct {
+	Repo     string
+	Addr     string `envconfig:"optional"`
+	LlmAddr  string `envconfig:"optional"`
+	LlmModel string `envconfig:"optional"`
+	CMS      struct {
 		StaticDirPath string `envconfig:"optional,"`
 		Login         string `envconfig:"optional"`
 		Password      string `envconfig:"optional"`
@@ -61,10 +65,20 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: repository: %w", err)
 	}
 
+	var llmProvider tgcontroller.Llm
+
+	if cfg.LlmAddr != "" && cfg.LlmModel != "" {
+		llmProvider, err = llm.New(ctx, a.logger, cfg.LlmAddr, cfg.LlmModel)
+		if err != nil {
+			return fmt.Errorf("app: init: llm: %w", err)
+		}
+	}
+
 	cachedRepo := cache.New(repo, a.logger)
 
 	a.tgController = tgcontroller.New(
 		cachedRepo,
+		llmProvider,
 		a.logger,
 		cfg.Debug,
 	)
