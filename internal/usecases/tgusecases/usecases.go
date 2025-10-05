@@ -25,7 +25,7 @@ type repository interface {
 }
 
 type llm interface {
-	GetQuote(ctx context.Context, names, quotes, messages []string) (string, error)
+	GetQuote(ctx context.Context, prompt string, messages []string) (string, error)
 }
 
 type UseCases struct {

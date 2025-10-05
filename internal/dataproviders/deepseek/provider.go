@@ -5,12 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"slices"
-	"strings"
 
 	"github.com/go-deepseek/deepseek"
 	"github.com/go-deepseek/deepseek/request"
-	"github.com/samber/lo/mutable"
 )
 
 type Provider struct {
@@ -32,11 +29,11 @@ func New(
 	}, nil
 }
 
-func (p Provider) GetQuote(ctx context.Context, names, quotes, messages []string) (string, error) {
+func (p Provider) GetQuote(ctx context.Context, prompt string, messages []string) (string, error) {
 	var temperature float32 = 1.5
 
 	resp, err := p.client.CallChatCompletionsReasoner(ctx, &request.ChatCompletionsRequest{
-		Messages:    makeMessages(names, quotes, messages),
+		Messages:    makeMessages(prompt, messages),
 		Model:       deepseek.DEEPSEEK_REASONER_MODEL,
 		Temperature: &temperature,
 	})
@@ -51,21 +48,12 @@ func (p Provider) GetQuote(ctx context.Context, names, quotes, messages []string
 	return resp.Choices[0].Message.Content, nil
 }
 
-func makeMessages(names, quotes, messages []string) []*request.Message {
-	quotes = slices.Clone(quotes)
-	mutable.Shuffle(quotes)
-	if len(quotes) > 50 {
-		quotes = quotes[:50]
-	}
-
+func makeMessages(prompt string, messages []string) []*request.Message {
 	result := make([]*request.Message, 0, len(messages)+1)
 
 	result = append(result, &request.Message{
-		Role: "system",
-		Content: "Тебя зовут именами " +
-			strings.Join(names, ", ") +
-			". Ты пишешь смешные фразы, на основании следующих фраз придумай новый смешной ответ для пользователя из одной фразы:\n" +
-			strings.Join(quotes, "\n"),
+		Role:    "system",
+		Content: prompt,
 	})
 
 	for _, msg := range messages {
