@@ -9,7 +9,8 @@ import (
 	"app/internal/controllers/cmscontroller"
 	"app/internal/controllers/tgcontroller"
 	"app/internal/dataproviders/cache"
-	"app/internal/dataproviders/llm"
+	"app/internal/dataproviders/deepseek"
+	"app/internal/dataproviders/ollama"
 	"app/internal/dataproviders/postgresql"
 	"app/internal/usecases/cmsusecases"
 
@@ -17,11 +18,15 @@ import (
 )
 
 type appConfig struct {
-	Repo     string
-	Addr     string `envconfig:"optional"`
-	LlmAddr  string `envconfig:"optional"`
-	LlmModel string `envconfig:"optional"`
-	CMS      struct {
+	Repo string
+	Addr string `envconfig:"optional"`
+	Llm  struct {
+		Addr  string `envconfig:"optional"`
+		Model string `envconfig:"optional"`
+		Token string `envconfig:"optional"`
+		Type  string `envconfig:"optional"`
+	} `envconfig:"optional"`
+	CMS struct {
 		StaticDirPath string `envconfig:"optional,"`
 		Login         string `envconfig:"optional"`
 		Password      string `envconfig:"optional"`
@@ -67,10 +72,16 @@ func (a *App) Init(ctx context.Context) error {
 
 	var llmProvider tgcontroller.Llm
 
-	if cfg.LlmAddr != "" && cfg.LlmModel != "" {
-		llmProvider, err = llm.New(ctx, a.logger, cfg.LlmAddr, cfg.LlmModel)
+	switch {
+	case cfg.Llm.Type == "deepseek" && cfg.Llm.Token != "":
+		llmProvider, err = deepseek.New(ctx, a.logger, cfg.Llm.Token)
 		if err != nil {
-			return fmt.Errorf("app: init: llm: %w", err)
+			return fmt.Errorf("app: init: deepseek: %w", err)
+		}
+	case cfg.Llm.Type == "ollama" && cfg.Llm.Addr != "" && cfg.Llm.Model != "":
+		llmProvider, err = ollama.New(ctx, a.logger, cfg.Llm.Addr, cfg.Llm.Model)
+		if err != nil {
+			return fmt.Errorf("app: init: ollama: %w", err)
 		}
 	}
 

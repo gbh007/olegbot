@@ -4,6 +4,7 @@ go 1.24.0
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/go-deepseek/deepseek v0.8.0
 	github.com/go-telegram/bot v1.11.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/jmoiron/sqlx v1.4.0

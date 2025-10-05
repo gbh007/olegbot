@@ -16,6 +16,8 @@
 | `DEBUG`               | Режим отладки                      | `true`                                                            |
 | `LLM_ADDR`            | Адрес Ollama                       | `http://localhost:11434`                                          |
 | `LLM_MODEL`           | LLM модель                         | `qwen3:0.6b`                                                      |
+| `LLM_TOKEN`           | Токен для доступа к LLM            | `secret_token`                                                    |
+| `LLM_TYPE`            | Тип используемого провайдера       | `ollama` / `deepseek`                                             |
 
 ## Метрики
 
