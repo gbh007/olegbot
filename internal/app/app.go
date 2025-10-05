@@ -11,6 +11,7 @@ import (
 	"app/internal/dataproviders/cache"
 	"app/internal/dataproviders/deepseek"
 	"app/internal/dataproviders/ollama"
+	"app/internal/dataproviders/openai"
 	"app/internal/dataproviders/postgresql"
 	"app/internal/usecases/cmsusecases"
 
@@ -73,6 +74,11 @@ func (a *App) Init(ctx context.Context) error {
 	var llmProvider tgcontroller.Llm
 
 	switch {
+	case cfg.Llm.Type == "openai" && cfg.Llm.Token != "" && cfg.Llm.Addr != "" && cfg.Llm.Model != "":
+		llmProvider, err = openai.New(ctx, a.logger, cfg.Llm.Addr, cfg.Llm.Token, cfg.Llm.Model)
+		if err != nil {
+			return fmt.Errorf("app: init: openai: %w", err)
+		}
 	case cfg.Llm.Type == "deepseek" && cfg.Llm.Token != "":
 		llmProvider, err = deepseek.New(ctx, a.logger, cfg.Llm.Token)
 		if err != nil {

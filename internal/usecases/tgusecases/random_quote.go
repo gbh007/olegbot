@@ -22,11 +22,12 @@ func (u *UseCases) randomQuote(ctx context.Context, botInfo *domain.Bot, msgHist
 	}
 
 	if u.llm != nil && botInfo != nil && useLLM {
+		tStart := time.Now()
 		q, err := u.llmQuote(ctx, botInfo, quotes, msgHistory)
 		if err != nil {
 			u.logger.ErrorContext(ctx, "get llm quote", "err", err.Error())
 		} else {
-			u.logger.DebugContext(ctx, "use llm quote", "quote", q)
+			u.logger.DebugContext(ctx, "use llm quote", "quote", q, "duration", time.Since(tStart).String())
 			return q, nil
 		}
 	}
