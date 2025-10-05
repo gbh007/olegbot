@@ -15,6 +15,7 @@ export interface BotModel {
   gif_chance?: number;
   llm_chance?: number;
   llm_allowed_chats?: Array<number>;
+  llm_prompt?: string;
   create_at: string;
   update_at?: string;
 }

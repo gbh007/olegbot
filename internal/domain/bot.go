@@ -25,6 +25,7 @@ type Bot struct {
 
 	LLMChance       float32
 	LLMAllowedChats []int64
+	LLMPrompt       string
 
 	CreateAt time.Time
 	UpdateAt time.Time

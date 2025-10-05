@@ -228,6 +228,15 @@ export function BotEditorWidget(props: {
           });
         }}
       />
+      <br />
+      <span>LLM prompt: </span>
+      <textarea
+        value={props.value.llm_prompt ?? ""}
+        onChange={(e) => {
+          props.onChange({ ...props.value, llm_prompt: e.target.value });
+        }}
+      />
+      <br />
       <button onClick={props.onSave}>Сохранить</button>
     </div>
   );

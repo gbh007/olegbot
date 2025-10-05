@@ -56,7 +56,7 @@ func (u UseCases) llmQuote(ctx context.Context, botInfo *domain.Bot, quotes []do
 
 	qts := lo.Map(quotes, func(q domain.Quote, _ int) string { return q.Text })
 
-	prompt, err := makePrompt(botInfo.Tags, qts)
+	prompt, err := makePrompt(botInfo.LLMPrompt, botInfo.Tags, qts)
 	if err != nil {
 		return "", fmt.Errorf("make prompt: %w", err)
 	}
@@ -69,7 +69,7 @@ func (u UseCases) llmQuote(ctx context.Context, botInfo *domain.Bot, quotes []do
 	return q, nil
 }
 
-func makePrompt(names, quotes []string) (string, error) {
+func makePrompt(promptTemplate string, names, quotes []string) (string, error) {
 	t := template.New("")
 
 	t.Funcs(template.FuncMap{
@@ -84,7 +84,11 @@ func makePrompt(names, quotes []string) (string, error) {
 		},
 	})
 
-	t, err := t.Parse(defaultPromptTemplate)
+	if promptTemplate == "" {
+		promptTemplate = defaultPromptTemplate
+	}
+
+	t, err := t.Parse(promptTemplate)
 	if err != nil {
 		return "", fmt.Errorf("parse template: %w", err)
 	}

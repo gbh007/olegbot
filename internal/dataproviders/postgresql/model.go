@@ -27,6 +27,7 @@ type botModel struct {
 	GifChance       sql.NullFloat64          `db:"gif_chance"`
 	LLMChance       sql.NullFloat64          `db:"llm_chance"`
 	LLMAllowedChats pgtype.FlatArray[int64]  `db:"llm_allowed_chats"`
+	LLMPrompt       sql.NullString           `db:"llm_prompt"`
 	CreateAt        time.Time                `db:"create_at"`
 	UpdateAt        sql.NullTime             `db:"update_at"`
 }
@@ -47,6 +48,7 @@ func (v botModel) toDomain() domain.Bot {
 		GifChance:       float32(v.GifChance.Float64),
 		LLMChance:       float32(v.LLMChance.Float64),
 		LLMAllowedChats: v.LLMAllowedChats,
+		LLMPrompt:       v.LLMPrompt.String,
 		CreateAt:        v.CreateAt,
 		UpdateAt:        v.UpdateAt.Time,
 	}
@@ -79,6 +81,7 @@ func (v *botModel) fromDomain(raw domain.Bot) {
 		Valid:   raw.LLMChance > 0,
 	}
 	v.LLMAllowedChats = ArrayToDB(raw.LLMAllowedChats)
+	v.LLMPrompt = StringToDB(raw.LLMPrompt)
 	v.CreateAt = raw.CreateAt
 	v.UpdateAt = TimeToDB(raw.UpdateAt)
 }
@@ -99,6 +102,7 @@ func (v botModel) columns() []string {
 		"gif_chance",
 		"llm_chance",
 		"llm_allowed_chats",
+		"llm_prompt",
 		"create_at",
 		"update_at",
 	}
@@ -120,6 +124,7 @@ func (v *botModel) ScanRow(rows pgx.Rows) error {
 		&v.GifChance,
 		&v.LLMChance,
 		&v.LLMAllowedChats,
+		&v.LLMPrompt,
 		&v.CreateAt,
 		&v.UpdateAt,
 	)

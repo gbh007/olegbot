@@ -21,6 +21,7 @@ type Bot struct {
 	GifChance       float32   `json:"gif_chance,omitempty"`
 	LLMChance       float32   `json:"llm_chance,omitempty"`
 	LLMAllowedChats []int64   `json:"llm_allowed_chats,omitempty"`
+	LLMPrompt       string    `json:"llm_prompt,omitempty"`
 	CreateAt        time.Time `json:"create_at"`
 	UpdateAt        time.Time `json:"update_at,omitempty"`
 }
@@ -41,6 +42,7 @@ func BotFromDomain(raw domain.Bot) Bot {
 		GifChance:       raw.GifChance,
 		LLMChance:       raw.LLMChance,
 		LLMAllowedChats: raw.LLMAllowedChats,
+		LLMPrompt:       raw.LLMPrompt,
 		CreateAt:        raw.CreateAt,
 		UpdateAt:        raw.UpdateAt,
 	}
@@ -62,6 +64,7 @@ func BotToDomain(raw Bot) domain.Bot {
 		GifChance:       raw.GifChance,
 		LLMChance:       raw.LLMChance,
 		LLMAllowedChats: raw.LLMAllowedChats,
+		LLMPrompt:       raw.LLMPrompt,
 		CreateAt:        raw.CreateAt,
 		UpdateAt:        raw.UpdateAt,
 	}

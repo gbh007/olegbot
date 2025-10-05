@@ -53,6 +53,7 @@ func (r *Repository) CreateBot(ctx context.Context, bot domain.Bot) error {
 			"gif_chance":        raw.GifChance,
 			"llm_chance":        raw.LLMChance,
 			"llm_allowed_chats": raw.LLMAllowedChats,
+			"llm_prompt":        raw.LLMPrompt,
 			"create_at":         raw.CreateAt,
 		})
 
@@ -91,6 +92,7 @@ func (r *Repository) UpdateBot(ctx context.Context, bot domain.Bot) error {
 			"gif_chance":        raw.GifChance,
 			"llm_chance":        raw.LLMChance,
 			"llm_allowed_chats": raw.LLMAllowedChats,
+			"llm_prompt":        raw.LLMPrompt,
 			"update_at":         raw.UpdateAt,
 		}).
 		Where(squirrel.Eq{
