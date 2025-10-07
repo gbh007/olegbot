@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
+
+	"app/internal/domain"
 
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
@@ -39,6 +42,12 @@ func (p Provider) GetQuote(ctx context.Context, prompt string, messages []string
 		Temperature: openai.Float(1.5),
 	})
 	if err != nil {
+		s := err.Error()
+
+		if strings.Contains(s, "429") || strings.Contains(s, "Rate limit exceeded") {
+			return "", domain.ErrLimitExceeded
+		}
+
 		return "", fmt.Errorf("make request: %w", err)
 	}
 

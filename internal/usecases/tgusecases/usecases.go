@@ -25,13 +25,9 @@ type repository interface {
 	Gifs(ctx context.Context, botID int64) ([]domain.Gif, error)
 }
 
-type llm interface {
-	GetQuote(ctx context.Context, prompt string, messages []string) (string, error)
-}
-
 type UseCases struct {
 	repo       repository
-	llm        llm
+	llm        domain.Llm
 	botID      int64
 	llmTimeout time.Duration
 
@@ -42,7 +38,7 @@ type UseCases struct {
 
 func New(
 	repo repository,
-	llm llm,
+	llm domain.Llm,
 	llmTimeout time.Duration,
 	botID int64,
 	logger *slog.Logger,

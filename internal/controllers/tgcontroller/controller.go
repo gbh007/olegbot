@@ -36,10 +36,6 @@ type repo interface {
 	Gifs(ctx context.Context, botID int64) ([]domain.Gif, error)
 }
 
-type Llm interface {
-	GetQuote(ctx context.Context, prompt string, messages []string) (string, error)
-}
-
 type Controller struct {
 	// FIXME: это очень плохо, надо отрефакторить (включая юзкейсы), чтобы перейти на интерфейсы
 	bots      map[int64]*telegram.Controller
@@ -49,13 +45,13 @@ type Controller struct {
 	debug  bool
 
 	repo       repo
-	llm        Llm
+	llm        domain.Llm
 	llmTimeout time.Duration
 }
 
 func New(
 	repo repo,
-	llm Llm,
+	llm domain.Llm,
 	llmTimeout time.Duration,
 	logger *slog.Logger,
 	debug bool,

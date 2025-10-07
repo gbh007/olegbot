@@ -7,16 +7,18 @@ login = "test"
 password = "test"
 static_dir_path = "/app/static"
 
-# [llm]
-# addr = "http://localhost:11434"
-# model = "qwen3:0.6b"
-# type = "ollama"
-# timeout = "1m"
-
-
 [llm]
+timeout = "1m"
+
+[[llm.providers]]
+addr = "http://localhost:11434"
+model = "qwen3:0.6b"
+type = "ollama"
+timeout = "1m"
+
+
+[[llm.providers]]
 addr = "https://openrouter.ai/api/v1"
 model = "deepseek/deepseek-chat-v3.1:free"
 token = ""
 type = "openai"
-timeout = "1m"

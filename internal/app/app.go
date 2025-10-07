@@ -10,10 +10,9 @@ import (
 	"app/internal/controllers/cmscontroller"
 	"app/internal/controllers/tgcontroller"
 	"app/internal/dataproviders/cache"
-	"app/internal/dataproviders/deepseek"
-	"app/internal/dataproviders/ollama"
-	"app/internal/dataproviders/openai"
+	"app/internal/dataproviders/multillm"
 	"app/internal/dataproviders/postgresql"
+	"app/internal/domain"
 	"app/internal/usecases/cmsusecases"
 
 	"github.com/BurntSushi/toml"
@@ -23,11 +22,8 @@ type appConfig struct {
 	Repo string `toml:"repo"`
 	Addr string `toml:"addr"`
 	Llm  struct {
-		Addr    string        `toml:"addr"`
-		Model   string        `toml:"model"`
-		Token   string        `toml:"token"`
-		Type    string        `toml:"type"`
-		Timeout time.Duration `toml:"timeout"`
+		Providers []multillm.Config `toml:"providers"`
+		Timeout   time.Duration     `toml:"timeout"`
 	} `toml:"llm"`
 	CMS struct {
 		StaticDirPath string `toml:"static_dir_path"`
@@ -73,23 +69,12 @@ func (a *App) Init(ctx context.Context) error {
 		return fmt.Errorf("app: init: repository: %w", err)
 	}
 
-	var llmProvider tgcontroller.Llm
+	var llmProvider domain.Llm
 
-	switch {
-	case cfg.Llm.Type == "openai" && cfg.Llm.Token != "" && cfg.Llm.Addr != "" && cfg.Llm.Model != "":
-		llmProvider, err = openai.New(ctx, a.logger, cfg.Llm.Addr, cfg.Llm.Token, cfg.Llm.Model)
+	if len(cfg.Llm.Providers) > 0 {
+		llmProvider, err = multillm.New(ctx, a.logger, cfg.Llm.Providers...)
 		if err != nil {
-			return fmt.Errorf("app: init: openai: %w", err)
-		}
-	case cfg.Llm.Type == "deepseek" && cfg.Llm.Token != "":
-		llmProvider, err = deepseek.New(ctx, a.logger, cfg.Llm.Token)
-		if err != nil {
-			return fmt.Errorf("app: init: deepseek: %w", err)
-		}
-	case cfg.Llm.Type == "ollama" && cfg.Llm.Addr != "" && cfg.Llm.Model != "":
-		llmProvider, err = ollama.New(ctx, a.logger, cfg.Llm.Addr, cfg.Llm.Model)
-		if err != nil {
-			return fmt.Errorf("app: init: ollama: %w", err)
+			return fmt.Errorf("app: init: llm: %w", err)
 		}
 	}
 
