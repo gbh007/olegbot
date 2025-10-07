@@ -51,7 +51,13 @@ func (u *UseCases) randomQuote(ctx context.Context, botInfo *domain.Bot, msgHist
 }
 
 func (u UseCases) llmQuote(ctx context.Context, botInfo *domain.Bot, quotes []domain.Quote, msgHistory []string) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Minute)
+	timeout := time.Minute
+
+	if u.llmTimeout > 0 {
+		timeout = u.llmTimeout
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	qts := lo.Map(quotes, func(q domain.Quote, _ int) string { return q.Text })

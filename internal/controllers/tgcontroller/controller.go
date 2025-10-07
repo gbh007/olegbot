@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"time"
 
 	"app/internal/dataproviders/telegram"
 	"app/internal/domain"
@@ -47,17 +48,25 @@ type Controller struct {
 	logger *slog.Logger
 	debug  bool
 
-	repo repo
-	llm  Llm
+	repo       repo
+	llm        Llm
+	llmTimeout time.Duration
 }
 
-func New(repo repo, llm Llm, logger *slog.Logger, debug bool) *Controller {
+func New(
+	repo repo,
+	llm Llm,
+	llmTimeout time.Duration,
+	logger *slog.Logger,
+	debug bool,
+) *Controller {
 	c := &Controller{
-		bots:   make(map[int64]*telegram.Controller),
-		repo:   repo,
-		llm:    llm,
-		logger: logger,
-		debug:  debug,
+		bots:       make(map[int64]*telegram.Controller),
+		repo:       repo,
+		llm:        llm,
+		llmTimeout: llmTimeout,
+		logger:     logger,
+		debug:      debug,
 	}
 
 	return c
@@ -96,6 +105,7 @@ func (c *Controller) startBot(ctx context.Context, bot domain.Bot) {
 		tgusecases.New(
 			c.repo,
 			c.llm,
+			c.llmTimeout,
 			bot.ID,
 			c.logger,
 			c.debug,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"strings"
+	"time"
 
 	"app/internal/domain"
 )
@@ -29,9 +30,10 @@ type llm interface {
 }
 
 type UseCases struct {
-	repo  repository
-	llm   llm
-	botID int64
+	repo       repository
+	llm        llm
+	botID      int64
+	llmTimeout time.Duration
 
 	// FIXME: отрефакторить и убрать отсюда
 	logger *slog.Logger
@@ -41,16 +43,18 @@ type UseCases struct {
 func New(
 	repo repository,
 	llm llm,
+	llmTimeout time.Duration,
 	botID int64,
 	logger *slog.Logger,
 	debug bool,
 ) *UseCases {
 	return &UseCases{
-		repo:   repo,
-		llm:    llm,
-		botID:  botID,
-		logger: logger,
-		debug:  debug,
+		repo:       repo,
+		llm:        llm,
+		llmTimeout: llmTimeout,
+		botID:      botID,
+		logger:     logger,
+		debug:      debug,
 	}
 }
 

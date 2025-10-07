@@ -12,3 +12,6 @@ up: build
 
 down:
 	docker compose down --remove-orphans
+
+run:
+	go run cmd/bot/main.go

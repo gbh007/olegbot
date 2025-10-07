@@ -3,6 +3,7 @@ module app
 go 1.24.0
 
 require (
+	github.com/BurntSushi/toml v1.5.0
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/go-deepseek/deepseek v0.8.0
 	github.com/go-telegram/bot v1.11.0
@@ -14,7 +15,6 @@ require (
 	github.com/pressly/goose/v3 v3.23.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/samber/lo v1.51.0
-	github.com/vrischmann/envconfig v1.3.0
 )
 
 require (

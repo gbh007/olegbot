@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"app/internal/controllers/cmscontroller"
 	"app/internal/controllers/tgcontroller"
@@ -15,24 +16,25 @@ import (
 	"app/internal/dataproviders/postgresql"
 	"app/internal/usecases/cmsusecases"
 
-	"github.com/vrischmann/envconfig"
+	"github.com/BurntSushi/toml"
 )
 
 type appConfig struct {
-	Repo string
-	Addr string `envconfig:"optional"`
+	Repo string `toml:"repo"`
+	Addr string `toml:"addr"`
 	Llm  struct {
-		Addr  string `envconfig:"optional"`
-		Model string `envconfig:"optional"`
-		Token string `envconfig:"optional"`
-		Type  string `envconfig:"optional"`
-	} `envconfig:"optional"`
+		Addr    string        `toml:"addr"`
+		Model   string        `toml:"model"`
+		Token   string        `toml:"token"`
+		Type    string        `toml:"type"`
+		Timeout time.Duration `toml:"timeout"`
+	} `toml:"llm"`
 	CMS struct {
-		StaticDirPath string `envconfig:"optional,"`
-		Login         string `envconfig:"optional"`
-		Password      string `envconfig:"optional"`
-	} `envconfig:"optional"`
-	Debug bool `envconfig:"optional"`
+		StaticDirPath string `toml:"static_dir_path"`
+		Login         string `toml:"login"`
+		Password      string `toml:"password"`
+	} `toml:"cms"`
+	Debug bool `toml:"debug"`
 }
 
 type App struct {
@@ -49,11 +51,11 @@ func New(logger *slog.Logger) *App {
 }
 
 func (a *App) Init(ctx context.Context) error {
-	cfg := new(appConfig)
+	cfg := appConfig{}
 
-	err := envconfig.Init(cfg)
+	_, err := toml.DecodeFile("config.toml", &cfg)
 	if err != nil {
-		return fmt.Errorf("app: init: envconfig: %w", err)
+		return fmt.Errorf("app: init: config: %w", err)
 	}
 
 	logLevel := slog.LevelInfo
@@ -96,6 +98,7 @@ func (a *App) Init(ctx context.Context) error {
 	a.tgController = tgcontroller.New(
 		cachedRepo,
 		llmProvider,
+		cfg.Llm.Timeout,
 		a.logger,
 		cfg.Debug,
 	)
