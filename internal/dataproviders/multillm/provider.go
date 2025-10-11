@@ -44,7 +44,7 @@ func New(ctx context.Context, logger *slog.Logger, cfgs ...Config) (*Provider, e
 			err      error
 		)
 		switch {
-		case cfg.Type == "openai" && cfg.Token != "" && cfg.Addr != "" && cfg.Model != "":
+		case cfg.Type == "openai" && cfg.Addr != "" && cfg.Model != "":
 			provider, err = openai.New(ctx, logger, cfg.Addr, cfg.Token, cfg.Model)
 			if err != nil {
 				return nil, fmt.Errorf("app: init: openai: %w", err)
