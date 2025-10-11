@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/gage-technologies/mistral-go v1.1.0
 	github.com/go-deepseek/deepseek v0.8.0
 	github.com/go-telegram/bot v1.11.0
 	github.com/jackc/pgx/v5 v5.7.1

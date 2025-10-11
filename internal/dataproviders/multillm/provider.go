@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"app/internal/dataproviders/deepseek"
+	"app/internal/dataproviders/mistral"
 	"app/internal/dataproviders/ollama"
 	"app/internal/dataproviders/openai"
 	"app/internal/domain"
@@ -48,16 +49,25 @@ func New(ctx context.Context, logger *slog.Logger, cfgs ...Config) (*Provider, e
 			if err != nil {
 				return nil, fmt.Errorf("app: init: openai: %w", err)
 			}
+
 		case cfg.Type == "deepseek" && cfg.Token != "":
 			provider, err = deepseek.New(ctx, logger, cfg.Token)
 			if err != nil {
 				return nil, fmt.Errorf("app: init: deepseek: %w", err)
 			}
+
+		case cfg.Type == "mistral" && cfg.Token != "" && cfg.Model != "":
+			provider, err = mistral.New(ctx, logger, cfg.Token, cfg.Model)
+			if err != nil {
+				return nil, fmt.Errorf("app: init: mistral: %w", err)
+			}
+
 		case cfg.Type == "ollama" && cfg.Addr != "" && cfg.Model != "":
 			provider, err = ollama.New(ctx, logger, cfg.Addr, cfg.Model)
 			if err != nil {
 				return nil, fmt.Errorf("app: init: ollama: %w", err)
 			}
+
 		}
 
 		providers = append(providers, llmProvider{

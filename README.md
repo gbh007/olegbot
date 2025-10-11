@@ -4,20 +4,9 @@
 
 Бот для Telegram который может выдавать рандомные цитаты из добавленных.
 
-## Переменные окружения
+## Пример конфигурации
 
-| Переменная            | Описание                           | Пример                                                            |
-| --------------------- | ---------------------------------- | ----------------------------------------------------------------- |
-| `REPO`                | Строка подключения для PostgreSQL  | `postgres://oleg:olegpass@localhost:5432/olegbot?sslmode=disable` |
-| `ADDR`                | Веб адрес для метрик и CMS         | `:8080`                                                           |
-| `CMS_LOGIN`           | Логин для CMS                      | `user`                                                            |
-| `CMS_PASSWORD`        | Пароль для CMS                     | `password`                                                        |
-| `CMS_STATIC_DIR_PATH` | Путь до статических файлов для CMS | `/app/static`                                                     |
-| `DEBUG`               | Режим отладки                      | `true`                                                            |
-| `LLM_ADDR`            | Адрес Ollama                       | `http://localhost:11434`                                          |
-| `LLM_MODEL`           | LLM модель                         | `qwen3:0.6b`                                                      |
-| `LLM_TOKEN`           | Токен для доступа к LLM            | `secret_token`                                                    |
-| `LLM_TYPE`            | Тип используемого провайдера       | `ollama` / `deepseek` / `openai`                                  |
+[Ссылка на файл](./config-example.toml)
 
 ## Метрики
 
