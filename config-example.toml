@@ -7,6 +7,13 @@ login = "test"
 password = "test"
 static_dir_path = "/app/static"
 
+
+# Proxy SOCKS5
+# [proxy]
+# host = "example.com"
+# user = "user"
+# pass = "password"
+
 [llm]
 timeout = "1m"
 
@@ -15,6 +22,8 @@ addr = "http://localhost:11434"
 model = "qwen3:0.6b"
 type = "ollama"
 timeout = "1m"
+think = false
+ctx_length = 20000
 
 
 [[llm.providers]]

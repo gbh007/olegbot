@@ -30,6 +30,11 @@ type appConfig struct {
 		Login         string `toml:"login"`
 		Password      string `toml:"password"`
 	} `toml:"cms"`
+	Proxy struct {
+		Host string `toml:"host"`
+		User string `toml:"user"`
+		Pass string `toml:"pass"`
+	} `toml:"proxy"`
 	Debug bool `toml:"debug"`
 }
 
@@ -86,6 +91,7 @@ func (a *App) Init(ctx context.Context) error {
 		cfg.Llm.Timeout,
 		a.logger,
 		cfg.Debug,
+		domain.ProxyCfg(cfg.Proxy),
 	)
 
 	a.cmsController = cmscontroller.New(

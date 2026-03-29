@@ -15,6 +15,8 @@ import (
 type Provider struct {
 	client   *api.Client
 	llmModel string
+	think    bool
+	numCtx   int
 }
 
 func New(
@@ -22,6 +24,8 @@ func New(
 	logger *slog.Logger,
 	u string,
 	llmModel string,
+	think bool,
+	numCtx int,
 ) (*Provider, error) {
 	uu, err := url.Parse(u)
 	if err != nil {
@@ -58,9 +62,15 @@ func New(
 		}()
 	}
 
+	if numCtx == 0 {
+		numCtx = 2048
+	}
+
 	return &Provider{
 		client:   client,
 		llmModel: llmModel,
+		think:    think,
+		numCtx:   numCtx,
 	}, nil
 }
 
@@ -68,7 +78,11 @@ func (p Provider) GetQuote(ctx context.Context, prompt string, messages []string
 	buff := &bytes.Buffer{}
 
 	err := p.client.Chat(ctx, &api.ChatRequest{
-		Model:    p.llmModel,
+		Model: p.llmModel,
+		Think: &api.ThinkValue{Value: p.think},
+		Options: map[string]any{
+			"num_ctx": p.numCtx,
+		},
 		Messages: makeMessages(prompt, messages),
 	}, func(resp api.ChatResponse) error {
 		buff.WriteString(resp.Message.Content)

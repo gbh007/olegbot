@@ -5,10 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"sync"
+	"time"
+
+	"app/internal/domain"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"golang.org/x/net/proxy"
 )
 
 type handler func(ctx context.Context, b *bot.Bot, update *models.Update) (bool, error)
@@ -78,7 +83,7 @@ func New(
 	return c
 }
 
-func (c *Controller) Serve(ctx context.Context) error {
+func (c *Controller) Serve(ctx context.Context, prx domain.ProxyCfg) error {
 	ctx, cancel := context.WithCancel(context.WithoutCancel(ctx))
 	c.cancel = cancel
 
@@ -93,6 +98,29 @@ func (c *Controller) Serve(ctx context.Context) error {
 	opts := []bot.Option{
 		bot.WithMiddlewares(middlewares...),
 		bot.WithDefaultHandler(c.handler),
+	}
+
+	if prx.Host != "" {
+		var auth *proxy.Auth
+
+		if prx.User != "" {
+			auth = &proxy.Auth{
+				User:     prx.User,
+				Password: prx.Pass,
+			}
+		}
+
+		dialer, err := proxy.SOCKS5("tcp", prx.Host, auth, proxy.Direct)
+		if err != nil {
+			return fmt.Errorf("create proxy dialer: %w", err)
+		}
+
+		opts = append(opts, bot.WithHTTPClient(time.Minute, &http.Client{
+			Transport: &http.Transport{
+				Dial: dialer.Dial,
+			},
+			Timeout: time.Minute,
+		}))
 	}
 
 	b, err := bot.New(c.tgToken, opts...)

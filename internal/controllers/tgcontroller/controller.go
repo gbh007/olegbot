@@ -47,6 +47,7 @@ type Controller struct {
 	repo       repo
 	llm        domain.Llm
 	llmTimeout time.Duration
+	proxy      domain.ProxyCfg
 }
 
 func New(
@@ -55,6 +56,7 @@ func New(
 	llmTimeout time.Duration,
 	logger *slog.Logger,
 	debug bool,
+	proxy domain.ProxyCfg,
 ) *Controller {
 	c := &Controller{
 		bots:       make(map[int64]*telegram.Controller),
@@ -63,6 +65,7 @@ func New(
 		llmTimeout: llmTimeout,
 		logger:     logger,
 		debug:      debug,
+		proxy:      proxy,
 	}
 
 	return c
@@ -122,7 +125,7 @@ func (c *Controller) startBot(ctx context.Context, bot domain.Bot) {
 	}
 
 	go func() {
-		err := bc.Serve(ctx)
+		err := bc.Serve(ctx, c.proxy)
 		if err != nil {
 			c.logger.ErrorContext(ctx, err.Error())
 		}

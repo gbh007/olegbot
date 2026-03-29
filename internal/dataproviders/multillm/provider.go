@@ -16,10 +16,12 @@ import (
 )
 
 type Config struct {
-	Addr  string `toml:"addr"`
-	Model string `toml:"model"`
-	Token string `toml:"token"`
-	Type  string `toml:"type"`
+	Addr      string `toml:"addr"`
+	Model     string `toml:"model"`
+	Token     string `toml:"token"`
+	Type      string `toml:"type"`
+	Think     bool   `toml:"think"`
+	CtxLength int    `toml:"ctx_length"`
 }
 
 type llmProvider struct {
@@ -63,7 +65,7 @@ func New(ctx context.Context, logger *slog.Logger, cfgs ...Config) (*Provider, e
 			}
 
 		case cfg.Type == "ollama" && cfg.Addr != "" && cfg.Model != "":
-			provider, err = ollama.New(ctx, logger, cfg.Addr, cfg.Model)
+			provider, err = ollama.New(ctx, logger, cfg.Addr, cfg.Model, cfg.Think, cfg.CtxLength)
 			if err != nil {
 				return nil, fmt.Errorf("app: init: ollama: %w", err)
 			}

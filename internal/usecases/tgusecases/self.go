@@ -101,9 +101,16 @@ func (u *UseCases) SelfHandle(ctx context.Context, b *bot.Bot, update *models.Up
 		return true, fmt.Errorf("self handle: %w", err)
 	}
 
+	var parseMode models.ParseMode
+
+	if useLLM {
+		parseMode = models.ParseModeMarkdownV1
+	}
+
 	_, err = b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   quote,
+		ChatID:    update.Message.Chat.ID,
+		Text:      quote,
+		ParseMode: parseMode,
 		ReplyParameters: &models.ReplyParameters{
 			MessageID: update.Message.ID,
 			ChatID:    update.Message.Chat.ID,
